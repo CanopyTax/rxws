@@ -1,8 +1,8 @@
-import get from './get';
+import remove from './remove';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
-describe('GET', () => {
+describe('remove', () => {
 	let backend;
 
 	beforeEach(() => {
@@ -11,21 +11,21 @@ describe('GET', () => {
 	});
 
 	it('should make a request', () => {
-		get('wow').subscribe(() => {});
+		remove('wow').subscribe(() => {});
 
 		expect(backend.write).toHaveBeenCalled();
 		let request = JSON.parse(backend.write.calls.argsFor(0));
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.wow"
+				"resource": "remove.wow"
 			},
 			"body": {}
 		})).toBe(true);
 	});
 
 	it('should make a request with parameters', () => {
-		get('users', {
+		remove('users', {
 			parameters: {
 				users: 1234
 			}
@@ -36,7 +36,7 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users",
+				"resource": "remove.users",
 				"parameters": {
 					"users": 1234
 				}
@@ -46,7 +46,7 @@ describe('GET', () => {
 	});
 
 	it('should make a request with custom headers', () => {
-		get('users', {
+		remove('users', {
 			parameters: {
 				users: 1234
 			},
@@ -59,7 +59,7 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users",
+				"resource": "remove.users",
 				"parameters": {
 					"users": 1234
 				},
@@ -71,7 +71,7 @@ describe('GET', () => {
 	});
 
 	it('should make a request with nested resource', () => {
-		get('users.posts.comments', {
+		remove('users.posts.comments', {
 			parameters: {
 				users: 1234,
 				posts: 1236,
@@ -84,7 +84,7 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users.posts.comments",
+				"resource": "remove.users.posts.comments",
 				"parameters": {
 					users: 1234,
 					posts: 1236,
@@ -96,12 +96,12 @@ describe('GET', () => {
 	});
 
 	it('should throw when no resource is passed', () => {
-		expect(get.bind(null, '')).toThrow();
-		expect(get.bind(null, '')).toThrowError('Invalid config');
+		expect(remove.bind(null, '')).toThrow();
+		expect(remove.bind(null, '')).toThrowError('Invalid config');
 	})
 
 	it('should throw when params are not passed to a parent resource', () => {
-		expect(get.bind(null, 'users.comments')).toThrow();
-		expect(get.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
+		expect(remove.bind(null, 'users.comments')).toThrow();
+		expect(remove.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
 	})
 });

@@ -1,8 +1,8 @@
-import get from './get';
+import put from './put';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
-describe('GET', () => {
+describe('put', () => {
 	let backend;
 
 	beforeEach(() => {
@@ -11,21 +11,29 @@ describe('GET', () => {
 	});
 
 	it('should make a request', () => {
-		get('wow').subscribe(() => {});
+		put('wow', {
+			name: 'Ibn Al-Haytham'
+		}).subscribe(() => {});
 
 		expect(backend.write).toHaveBeenCalled();
 		let request = JSON.parse(backend.write.calls.argsFor(0));
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.wow"
+				"resource": "put.wow"
 			},
-			"body": {}
+			"body": {
+				"wow": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should make a request with parameters', () => {
-		get('users', {
+		put('users', {
+			name: 'Ibn Al-Haytham'
+		}, {
 			parameters: {
 				users: 1234
 			}
@@ -36,17 +44,23 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users",
+				"resource": "put.users",
 				"parameters": {
 					"users": 1234
 				}
 			},
-			"body": {}
+			"body": {
+				"users": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should make a request with custom headers', () => {
-		get('users', {
+		put('users', {
+			name: 'Ibn Al-Haytham'
+		}, {
 			parameters: {
 				users: 1234
 			},
@@ -59,19 +73,25 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users",
+				"resource": "put.users",
 				"parameters": {
 					"users": 1234
 				},
 				"api-version": "1.2.3",
 				authorization: "123234234344"
 			},
-			"body": {}
+			"body": {
+				"users": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should make a request with nested resource', () => {
-		get('users.posts.comments', {
+		put('users.posts.comments', {
+			name: 'Ibn Al-Haytham'
+		}, {
 			parameters: {
 				users: 1234,
 				posts: 1236,
@@ -84,24 +104,28 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users.posts.comments",
+				"resource": "put.users.posts.comments",
 				"parameters": {
 					users: 1234,
 					posts: 1236,
 					comments: 12345
 				}
 			},
-			"body": {}
+			"body": {
+				"comments": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should throw when no resource is passed', () => {
-		expect(get.bind(null, '')).toThrow();
-		expect(get.bind(null, '')).toThrowError('Invalid config');
+		expect(put.bind(null, '')).toThrow();
+		expect(put.bind(null, '')).toThrowError('Invalid config');
 	})
 
 	it('should throw when params are not passed to a parent resource', () => {
-		expect(get.bind(null, 'users.comments')).toThrow();
-		expect(get.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
+		expect(put.bind(null, 'users.comments')).toThrow();
+		expect(put.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
 	})
 });

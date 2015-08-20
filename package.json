@@ -4,9 +4,11 @@
   "description": "A RESTful reactive JavaScript implmentation on top of web sockets",
   "main": "dist/rxws.js",
   "scripts": {
-    "test": "node node_modules/jasmine/bin/jasmine.js",
+    "test": "node node_modules/jasmine-node/bin/jasmine-node lib",
     "build": "node node_modules/babel/bin/babel.js src --out-dir lib",
-    "clean": "rm -rf lib"
+    "clean": "rm -rf lib",
+    "test-watch": "node node_modules/jasmine-node/bin/jasmine-node --autoTest lib",
+    "watch": "node node_modules/babel/bin/babel.js src --out-dir lib --watch"
   },
   "repository": {
     "type": "git",
@@ -24,10 +26,12 @@
     "html-loader": "^0.3.0",
     "jasmine": "^2.3.2",
     "jasmine-core": "^2.3.4",
+    "jasmine-node": "^2.0.0",
     "karma": "^0.13.9",
     "karma-chrome-launcher": "^0.2.0",
     "karma-jasmine": "^0.3.6",
     "karma-phantomjs-launcher": "^0.2.1",
+    "lodash": "^3.10.1",
     "phantomjs": "^1.9.18",
     "ts-loader": "^0.5.0",
     "typescript": "^1.5.3",

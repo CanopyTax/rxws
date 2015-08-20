@@ -7,19 +7,47 @@ let requestQueue = [];
 let requestMap = {};
 let notificationMap = {};
 
+function sanitizeParams(resource, params) {
+	let resourceElements = resource.split('.');
+
+	if (resourceElements.length > 1 && !params) {
+		throw new Error(`Invalid params: param is required for resource ${resourceElements[0]}`);
+	}
+
+	resourceElements.forEach((el, i) => {
+		if (i > 0) {
+			if (!params[el]) throw new Error(`Invalid params: param is required for resource ${el}`);
+		}
+	});
+}
+
+/**
+ * Generate a request object which will be sent to the server.
+ * The config needs to have a 'resource' and 'method' attribute.
+ */
 function generateRequestObject(config) {
+	if (!config || !config.resource || !config.method) {
+		throw new Error('Invalid config', config);
+	}
+
+	sanitizeParams(config.resource, config.parameters);
+
+	let body = config.data;
+	delete config.data;
+
 	let correlationId = uuid();
 	let resourceList = config.resource.split('.');
-	// need to add method to resource path
+
+	config.resource = config.method + '.' + config.resource;
+	delete config.method;
 
 	return {
 		header: {
-			...config.header,
-			resource: config.resource,
+			...config,
 			correlationId
 		},
 		body: {
-			[resourceList[resourceList.length - 1]]: correlationId
+			[resourceList[resourceList.length - 1]]: body
 		}
 	}
 }
@@ -34,7 +62,7 @@ function handleMessage(message) {
 	let { header } = response;
 
 	if (header.notification) {
-		return handleServerNotification(message);
+		return handleServerNotification(response);
 	}
 
 	let observer = requestMap[header.correlationId];
@@ -70,6 +98,7 @@ function sendRequestQueue() {
 }
 
 export function setBackend(Backend, url) {
+	if (!url) throw new Error('No backend url provided');
 	backend = Backend;
 
 	backend.connect(url)

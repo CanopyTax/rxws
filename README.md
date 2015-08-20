@@ -94,7 +94,7 @@ Server Notifications:
 ```javascript
 // Listen for new posts
 jxws.onNotification('newPost')
-  .forEach((messageBody, messageHeaders) => {
+  .forEach((messageBody) => {
     jxws.get('posts', { parameters: { posts: messageBody.id } })
       .subscribe(data => console.log);
   })

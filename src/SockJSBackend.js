@@ -18,7 +18,7 @@ export default {
 		sock.send(request);
 	},
 
-	on(event, callback) {
+	onMessage(callback) {
 		sock.onmessage = callback;
 	},
 

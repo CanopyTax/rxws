@@ -1,8 +1,8 @@
-import get from './get';
+import patch from './patch';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
-describe('GET', () => {
+describe('patch', () => {
 	let backend;
 
 	beforeEach(() => {
@@ -11,21 +11,29 @@ describe('GET', () => {
 	});
 
 	it('should make a request', () => {
-		get('wow').subscribe(() => {});
+		patch('wow', {
+			name: 'Ibn Al-Haytham'
+		}).subscribe(() => {});
 
 		expect(backend.write).toHaveBeenCalled();
 		let request = JSON.parse(backend.write.calls.argsFor(0));
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.wow"
+				"resource": "patch.wow"
 			},
-			"body": {}
+			"body": {
+				"wow": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should make a request with parameters', () => {
-		get('users', {
+		patch('users', {
+			name: 'Ibn Al-Haytham'
+		}, {
 			parameters: {
 				users: 1234
 			}
@@ -36,17 +44,23 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users",
+				"resource": "patch.users",
 				"parameters": {
 					"users": 1234
 				}
 			},
-			"body": {}
+			"body": {
+				"users": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should make a request with custom headers', () => {
-		get('users', {
+		patch('users', {
+			name: 'Ibn Al-Haytham'
+		}, {
 			parameters: {
 				users: 1234
 			},
@@ -59,19 +73,25 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users",
+				"resource": "patch.users",
 				"parameters": {
 					"users": 1234
 				},
 				"api-version": "1.2.3",
 				authorization: "123234234344"
 			},
-			"body": {}
+			"body": {
+				"users": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should make a request with nested resource', () => {
-		get('users.posts.comments', {
+		patch('users.posts.comments', {
+			name: 'Ibn Al-Haytham'
+		}, {
 			parameters: {
 				users: 1234,
 				posts: 1236,
@@ -84,24 +104,28 @@ describe('GET', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "get.users.posts.comments",
+				"resource": "patch.users.posts.comments",
 				"parameters": {
 					users: 1234,
 					posts: 1236,
 					comments: 12345
 				}
 			},
-			"body": {}
+			"body": {
+				"comments": {
+					name: 'Ibn Al-Haytham'
+				}
+			}
 		})).toBe(true);
 	});
 
 	it('should throw when no resource is passed', () => {
-		expect(get.bind(null, '')).toThrow();
-		expect(get.bind(null, '')).toThrowError('Invalid config');
+		expect(patch.bind(null, '')).toThrow();
+		expect(patch.bind(null, '')).toThrowError('Invalid config');
 	})
 
 	it('should throw when params are not passed to a parent resource', () => {
-		expect(get.bind(null, 'users.comments')).toThrow();
-		expect(get.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
+		expect(patch.bind(null, 'users.comments')).toThrow();
+		expect(patch.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
 	})
 });
