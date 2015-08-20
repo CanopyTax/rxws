@@ -139,6 +139,4 @@ rxws({
 
 `rxws.patch(resource[, data[, config]]): observable`
 
-`rxws.setBackend(Backend): null`
-
 `rxws.onMessage(type: string): observable`
