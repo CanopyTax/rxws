@@ -1,8 +1,8 @@
 {
   "name": "rxws",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A RESTful reactive JavaScript implmentation on top of web sockets",
-  "main": "dist/rxws.js",
+  "main": "lib/rxws.js",
   "scripts": {
     "test": "node node_modules/jasmine-node/bin/jasmine-node lib",
     "build": "node node_modules/babel/bin/babel.js src --out-dir lib",
