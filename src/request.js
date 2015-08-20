@@ -67,12 +67,15 @@ function handleMessage(message) {
 
 	let observer = requestMap[header.correlationId];
 
-	if (!observer) console.error('No associated request for the server message ', message);
+	if (!observer) throw new Error('No associated request for the server message', message);
 	else {
+		response.body.__header = response.header;
 		if (response.header.statusCode !== 200) {
-			observer.onError(message.body, message.header);
+			observer.onError(response.body);
+			observer.onCompleted(response.body);
 		} else {
-			observer.onNext(message.body, message.header);
+			observer.onNext(response.body);
+			observer.onCompleted(response.body);
 		}
 	}
 }
