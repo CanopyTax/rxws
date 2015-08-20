@@ -6,6 +6,7 @@ let isConnected = false;
 let requestQueue = [];
 let requestMap = {};
 let notificationMap = {};
+let defaultHeaders = {};
 
 function sanitizeParams(resource, params) {
 	let resourceElements = resource.split('.');
@@ -43,6 +44,7 @@ function generateRequestObject(config) {
 
 	return {
 		header: {
+			...defaultHeaders,
 			...config,
 			correlationId
 		},
@@ -83,6 +85,7 @@ function handleMessage(message) {
 function handleServerNotification(message) {
 	sendRequest({
 		header: {
+			...defaultHeaders,
 			...message.header
 		}
 	});
@@ -100,9 +103,10 @@ function sendRequestQueue() {
 	}
 }
 
-export function setBackend(Backend, url) {
+export function setBackend(Backend, url, _defaultHeaders = {}) {
 	if (!url) throw new Error('No backend url provided');
 	backend = Backend;
+	defaultHeaders = _defaultHeaders;
 
 	backend.connect(url)
 		.subscribe((response) => {

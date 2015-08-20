@@ -60,6 +60,36 @@ describe('request', () => {
 			expect(request.header.correlationId).toBeDefined();
 			expect(typeof request.header.correlationId).toBe('string');
 		});
+
+		it('should attach default headers', () => {
+			let backend = makeMockBackend();
+			setBackend(backend, 'someUrl', {
+				testHeader: 'Bism Allah Irahman Irahim'
+			});
+
+			rxws({
+				method: 'get',
+				resource: 'users'
+			}).subscribe(() => {});
+
+			let request = JSON.parse(backend.write.calls.argsFor(0));
+			expect(request.header.testHeader).toBe('Bism Allah Irahman Irahim');
+		});
+
+		it('should accept custom methods', () => {
+			let backend = makeMockBackend();
+			setBackend(backend, 'someUrl', {
+				testHeader: 'Bism Allah Irahman Irahim'
+			});
+
+			rxws({
+				method: 'eval',
+				resource: 'users'
+			}).subscribe(() => {});
+
+			let request = JSON.parse(backend.write.calls.argsFor(0));
+			expect(request.header.resource).toBe('eval.users');
+		});
 	});
 
 	describe('Request responses', () => {
