@@ -116,6 +116,8 @@ var subscription = source.subscribe(
 
 ## API
 
+`rxws.setBackend(WebSocketBackend, url: string[, defaultHeaders])`
+
 `rxws(config): observable`
 ```javascript
 rxws({
