@@ -23,15 +23,13 @@ Performing a `GET` request:
 ```javascript
 // Request all users
 jxws.get('/users')
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
   
 // Request a specific user
 jxws.get('/users', {
   parameters: { 'users': 13 }
 })
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
   
 // Optionally the request could have been built with
 rxws({
@@ -39,8 +37,7 @@ rxws({
   resource: 'users',
   parameters: { 'users': 13 }
 })
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
 ```
 
 Performing a `POST` request:
@@ -50,8 +47,7 @@ jxws.post('/users', {
   firstName: 'Johnny',
   lastName: 'Appleseed'
 })
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
 
 // Optionally the request could have been built with
 rxws({
@@ -62,8 +58,7 @@ rxws({
     lastName: 'Appleseed'
   }
 })
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
 ```
 
 Nested resources:
@@ -72,8 +67,7 @@ Nested resources:
 jxws.get('posts.comments', {
   parameters: { 'posts': 13, 'comments': 15 }
 })
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
 ```
 
 Custom headers:
@@ -86,8 +80,7 @@ jxws.get('posts.comments', {
   accessToken: '7fgnasdfvy0afdsjfjdls',
   queryParameters: { include: 'history' }
 })  
-  .subscribe(data => console.log)
-  .catch(error => console.error)
+  .subscribe(data => console.log, error => console.error)
 ```
 
 Server Notifications:
@@ -96,7 +89,7 @@ Server Notifications:
 jxws.onNotification('newPost')
   .forEach((messageBody) => {
     jxws.get('posts', { parameters: { posts: messageBody.id } })
-      .subscribe(data => console.log);
+      .subscribe(data => console.log, error => console.error);
   })
 ```
 
@@ -106,7 +99,7 @@ Reactive example:
 var source = rxws.get('url').retry(3).catch(cachedVersion());
 
 var subscription = source.subscribe(
-  function (data) {
+  (data) => {
     // Displays the data from the URL or cached data
     console.log(data);
   }
