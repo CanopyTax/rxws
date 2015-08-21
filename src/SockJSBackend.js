@@ -19,7 +19,9 @@ export default {
 	},
 
 	onMessage(callback) {
-		sock.onmessage = callback;
+		sock.onmessage = (message) => {
+			callback.call(null, message.data);
+		}
 	},
 
 	close() {
