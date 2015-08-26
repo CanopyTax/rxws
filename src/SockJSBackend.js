@@ -5,7 +5,7 @@ let sock;
 let connectionTries = 0;
 
 function getReconnectTimer() {
-	return Math.log(connectionTries * 100) * (connectionTries - 1) + (Math.random() * 10 * (connectionTries - 1)) * 1000;
+	return Math.log(connectionTries) * (connectionTries - 1) + (Math.random() * (connectionTries - 1)) * 1000;
 }
 
 function tryConnect(url, observer) {

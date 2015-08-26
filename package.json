@@ -1,6 +1,6 @@
 {
   "name": "rxws",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A RESTful reactive JavaScript implmentation on top of web sockets",
   "main": "lib/rxws.js",
   "scripts": {
