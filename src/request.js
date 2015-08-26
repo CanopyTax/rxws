@@ -8,6 +8,10 @@ let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
 
+function getRetryTimer(i) {
+	return Math.log(i) * (i - 1) + (Math.random() * (i - 1)) * 1000;
+}
+
 function sanitizeParams(resource, params) {
 	let resourceElements = resource.split('.');
 
@@ -108,15 +112,19 @@ export function setBackend(Backend, url, _defaultHeaders = {}) {
 	backend = Backend;
 	defaultHeaders = _defaultHeaders;
 
-	backend.connect(url)
-		.subscribe((response) => {
-			isConnected = true;
-			sendRequestQueue();
-			backend.onMessage(handleMessage);
-		}, (error) => {
+	backend.connect(url).retryWhen(function(attempts) {
+		return Observable.range(1, 3).zip(attempts, function(i) {
+			return i;
+		}).flatMap(function(i) {
 			isConnected = false;
-			console.error('Cannot connect to backend: ', url, error);
+			console.log("delay retry by " + i + " second(s)");
+			return Observable.timer(getRetryTimer(i));
 		});
+	}).subscribe((response) => {
+		isConnected = true;
+		sendRequestQueue();
+		backend.onMessage(handleMessage);
+	});
 }
 
 export function onNotification(type) {

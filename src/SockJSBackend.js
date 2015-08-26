@@ -2,36 +2,20 @@ import { Observable } from 'rx';
 import SockJS from 'sockjs-client';
 
 let sock;
-let connectionTries = 0;
-
-function getReconnectTimer() {
-	return Math.log(connectionTries) * (connectionTries - 1) + (Math.random() * (connectionTries - 1)) * 1000;
-}
 
 function tryConnect(url, observer) {
-	connectionTries++;
-
-	try {
-		sock = new SockJS(url);
-	} catch(error) {
-		console.error(error);
-		setTimeout(tryConnect.bind(null, url, observer), getReconnectTimer());
-	}
+	sock = new SockJS(url);
 
 	sock.onopen = function() {
 		observer.onNext();
 	}
 
 	sock.onclose = function() {
-		console.warn('Lost connection');
 		observer.onError('Lost connection')
-		setTimeout(tryConnect.bind(null, url, observer), getReconnectTimer());
 	}
 
 	sock.onerror = function(e) {
-		console.warn(e);
 		observer.onError(e)
-		setTimeout(tryConnect.bind(null, url, observer), getReconnectTimer());
 	}
 }
 
