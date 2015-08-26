@@ -9,7 +9,7 @@ let notificationMap = {};
 let defaultHeaders = {};
 
 function getRetryTimer(i) {
-	return Math.log(i) * (i - 1) + (Math.random() * (i - 1)) * 1000;
+	return (Math.log(i) + (Math.random() * (i - 1))) * 1000;
 }
 
 function sanitizeParams(resource, params) {
@@ -113,12 +113,13 @@ export function setBackend(Backend, url, _defaultHeaders = {}) {
 	defaultHeaders = _defaultHeaders;
 
 	backend.connect(url).retryWhen(function(attempts) {
-		return Observable.range(1, 3).zip(attempts, function(i) {
+		return Observable.range(1, 30000).zip(attempts, function(i) {
 			return i;
 		}).flatMap(function(i) {
 			isConnected = false;
-			console.log("delay retry by " + i + " second(s)");
-			return Observable.timer(getRetryTimer(i));
+			const seconds = getRetryTimer(i);
+			console.log("delay retry by " + seconds + " second(s)");
+			return Observable.timer(seconds);
 		});
 	}).subscribe((response) => {
 		isConnected = true;
@@ -151,6 +152,6 @@ export default function makeRequest(config) {
 			requestQueue.push(request);
 		}
 
-		requestMap[request.correlationId] = observer;
+		requestMap[request.header.correlationId] = observer;
 	})
 }
