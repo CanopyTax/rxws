@@ -11,7 +11,12 @@ function getReconnectTimer() {
 function tryConnect(url, observer) {
 	connectionTries++;
 
-	sock = new SockJS(url);
+	try {
+		sock = new SockJS(url);
+	} catch(error) {
+		console.error(error);
+		setTimeout(tryConnect.bind(observer), getReconnectTimer());
+	}
 
 	sock.onopen = function() {
 		observer.onNext();
@@ -20,13 +25,13 @@ function tryConnect(url, observer) {
 	sock.onclose = function() {
 		console.warn('Lost connection');
 		observer.onError('Lost connection')
-		setTimeout(tryConnect.bind(observer), getReconnectTimer);
+		setTimeout(tryConnect.bind(observer), getReconnectTimer());
 	}
 
 	sock.onerror = function(e) {
 		console.warn(e);
 		observer.onError(e)
-		setTimeout(tryConnect.bind(observer), getReconnectTimer);
+		setTimeout(tryConnect.bind(observer), getReconnectTimer());
 	}
 }
 
