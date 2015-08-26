@@ -114,6 +114,7 @@ export function setBackend(Backend, url, _defaultHeaders = {}) {
 			sendRequestQueue();
 			backend.onMessage(handleMessage);
 		}, (error) => {
+			isConnected = false;
 			console.error('Cannot connect to backend: ', url, error);
 		});
 }
