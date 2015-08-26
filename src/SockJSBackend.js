@@ -15,7 +15,7 @@ function tryConnect(url, observer) {
 		sock = new SockJS(url);
 	} catch(error) {
 		console.error(error);
-		setTimeout(tryConnect.bind(url, observer), getReconnectTimer());
+		setTimeout(tryConnect.bind(null, url, observer), getReconnectTimer());
 	}
 
 	sock.onopen = function() {
@@ -25,13 +25,13 @@ function tryConnect(url, observer) {
 	sock.onclose = function() {
 		console.warn('Lost connection');
 		observer.onError('Lost connection')
-		setTimeout(tryConnect.bind(url, observer), getReconnectTimer());
+		setTimeout(tryConnect.bind(null, url, observer), getReconnectTimer());
 	}
 
 	sock.onerror = function(e) {
 		console.warn(e);
 		observer.onError(e)
-		setTimeout(tryConnect.bind(url, observer), getReconnectTimer());
+		setTimeout(tryConnect.bind(null, url, observer), getReconnectTimer());
 	}
 }
 
