@@ -8,7 +8,7 @@ function getReconnectTimer() {
 	return Math.log(connectionTries * 100) * (connectionTries - 1) + (Math.random() * 10 * (connectionTries - 1));
 }
 
-function tryConnect(observer) {
+function tryConnect(url, observer) {
 	connectionTries++;
 
 	sock = new SockJS(url);
@@ -34,7 +34,7 @@ export default {
 
 	connect(url, forceFail) {
 		return Observable.create((observer) => {
-			tryConnect(observer);
+			tryConnect(url, observer);
 		})
 	},
 
