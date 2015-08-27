@@ -33,7 +33,11 @@ describe('request', () => {
 			let backend = {
 				connect: () => {
 					return {
-						subscribe: subscribeSpy
+						retryWhen: function() {
+							return {
+								subscribe: subscribeSpy
+							}
+						}
 					}
 				}
 			}
@@ -137,7 +141,7 @@ describe('request', () => {
 
 			backend.mockServerMessage(JSON.stringify({
 				"header": {
-					"correlationId": request.correlationId,
+					"correlationId": request.header.correlationId,
 					"customHeader": 5,
 					"statusCode": 200
 				},
@@ -166,7 +170,7 @@ describe('request', () => {
 
 			backend.mockServerMessage(JSON.stringify({
 				"header": {
-					"correlationId": request.correlationId,
+					"correlationId": request.header.correlationId,
 					"customHeader": 5,
 					"statusCode": 200
 				},
@@ -197,7 +201,7 @@ describe('request', () => {
 
 			backend.mockServerMessage(JSON.stringify({
 				"header": {
-					"correlationId": request.correlationId,
+					"correlationId": request.header.correlationId,
 					"customHeader": 5,
 					"statusCode": 404
 				},
