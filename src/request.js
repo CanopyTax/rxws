@@ -7,10 +7,8 @@ let requestQueue = [];
 let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
-let transformer = {
-	t1: function(request) {
-		return request;
-	}
+let transformer = function(request) {
+	return request;
 }
 
 function getRetryTimer(i) {
@@ -51,7 +49,7 @@ function generateRequestObject(config) {
 	config.resource = config.method + '.' + config.resource;
 	delete config.method;
 
-	return transformer.t1({
+	return transformer({
 		header: {
 			...defaultHeaders,
 			...config,
@@ -116,7 +114,7 @@ export function setBackend(Backend, url, _defaultHeaders = {}, _transformer = tr
 	if (!url) throw new Error('No backend url provided');
 	backend = Backend;
 	defaultHeaders = _defaultHeaders;
-	transformer.t1 = transformer;
+	transformer = _transformer;
 
 	backend.connect(url).retryWhen(function(attempts) {
 		return Observable.range(1, 30000).zip(attempts, function(i) {
