@@ -46,6 +46,7 @@ function generateRequestObject(config) {
 	let correlationId = uuid();
 	let resourceList = config.resource.split('.');
 
+	if (config.method === 'remove') config.method = 'delete';
 	config.resource = config.method + '.' + config.resource;
 	delete config.method;
 
