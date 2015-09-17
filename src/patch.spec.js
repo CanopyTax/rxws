@@ -7,7 +7,7 @@ describe('patch', () => {
 
 	beforeEach(() => {
 		backend = makeMockBackend();
-		setBackend(backend, 'someUrl');
+		setBackend({backend: backend, url: 'someUrl'});
 	});
 
 	it('should make a request', () => {
@@ -120,12 +120,12 @@ describe('patch', () => {
 	});
 
 	it('should throw when no resource is passed', () => {
-		expect(patch.bind(null, '')).toThrow();
-		expect(patch.bind(null, '')).toThrowError('Invalid config');
+		expect(function() { patch('').subscribe(function() {}) }).toThrow();
+		expect(function() { patch('').subscribe(function() {}) }).toThrowError('Invalid config');
 	})
 
 	it('should throw when params are not passed to a parent resource', () => {
-		expect(patch.bind(null, 'users.comments')).toThrow();
-		expect(patch.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
+		expect(function() { patch('users.comments').subscribe(function() {}) }).toThrow();
+		expect(function() { patch('users.comments').subscribe(function() {}) }).toThrowError('Invalid params: param is required for resource users');
 	})
 });

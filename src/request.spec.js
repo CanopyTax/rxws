@@ -8,7 +8,7 @@ describe('request', () => {
 	describe('setup', () => {
 		it('should define a backend', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 			expect(backend.onMessage).toHaveBeenCalled();
 
 			expect(backend.connect).toHaveBeenCalled();
@@ -17,7 +17,7 @@ describe('request', () => {
 
 		it('should return an observable', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 			expect(backend.onMessage).toHaveBeenCalled();
 
 			let observable = makeRequest({resource: 'test', method: 'get'})
@@ -44,7 +44,7 @@ describe('request', () => {
 
 			spyOn(backend, 'connect').and.callThrough();
 
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 
 			expect(backend.connect).toHaveBeenCalled();
 			expect(backend.connect).toHaveBeenCalledWith('someUrl');
@@ -53,7 +53,7 @@ describe('request', () => {
 
 		it('should attach a correlationId to requests', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 
 			rxws({
 				method: 'get',
@@ -67,8 +67,12 @@ describe('request', () => {
 
 		it('should attach default headers', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl', {
-				testHeader: 'Bism Allah Irahman Irahim'
+			setBackend({
+				backend: backend,
+				url: 'someUrl',
+				defaultHeaders: {
+					testHeader: 'Bism Allah Irahman Irahim'
+				}
 			});
 
 			rxws({
@@ -82,8 +86,12 @@ describe('request', () => {
 
 		it('should accept custom methods', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl', {
-				testHeader: 'Bism Allah Irahman Irahim'
+			setBackend({
+				backend: backend,
+				url: 'someUrl',
+				defaultHeaders: {
+					testHeader: 'Bism Allah Irahman Irahim'
+				}
 			});
 
 			rxws({
@@ -99,7 +107,7 @@ describe('request', () => {
 	describe('Request responses', () => {
 		it('should throw an error if a correlation id has no resolution in the client', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 
 			rxws({
 				method: 'get',
@@ -128,7 +136,7 @@ describe('request', () => {
 
 		it('should resolve a request to the original observer', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 
 			rxws({
 				method: 'get',
@@ -157,7 +165,7 @@ describe('request', () => {
 
 		it('should attach headers to the response', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 
 			rxws({
 				method: 'get',
@@ -186,7 +194,7 @@ describe('request', () => {
 
 		it('should trigger an error with a non 200 response', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 
 			rxws({
 				method: 'get',
@@ -219,7 +227,7 @@ describe('request', () => {
 	describe('server push notifications', () => {
 		it('should add notification listeners', (run) => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 			expect(backend.onMessage).toHaveBeenCalled();
 
 			rxws.onNotification('farrot')
@@ -244,7 +252,7 @@ describe('request', () => {
 
 		it('should immediately send a acknowlegment message to the server when a message is received', () => {
 			let backend = makeMockBackend();
-			setBackend(backend, 'someUrl');
+			setBackend({backend: backend, url: 'someUrl'});
 			expect(backend.onMessage).toHaveBeenCalled();
 
 			rxws.onNotification('farrot')
@@ -282,14 +290,18 @@ describe('request', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				request: function(req) {
-					return req;
+				request: function(req, send) {
+					send(req);
 				}
 			}
 
 			spyOn(transformers, 'request').and.callThrough();
 
-			setBackend(backend, 'someUrl', undefined, transformers.request);
+			setBackend({
+				backend: backend,
+				url: 'someUrl',
+				requestTransformer: transformers.request
+			});
 
 			rxws({
 				method: 'get',
@@ -303,14 +315,18 @@ describe('request', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				response: function(res) {
-					return res;
+				response: function(res, reply, retry) {
+					reply(res);
 				}
 			}
 
 			spyOn(transformers, 'response').and.callThrough();
 
-			setBackend(backend, 'someUrl', undefined, undefined, transformers.response);
+			setBackend({
+				backend: backend,
+				url: 'someUrl',
+				responseTransformer: transformers.response
+			});
 
 			backend.mockServerMessage(JSON.stringify({
 				"header": {
@@ -327,5 +343,50 @@ describe('request', () => {
 
 			expect(transformers.response).toHaveBeenCalled();
 		});
+
+		it('should retry requests', () => {
+			let backend = makeMockBackend();
+
+			let transformers = {
+				response: function(res, reply, retry) {
+					retry();
+				}
+			}
+
+			setBackend({
+				backend: backend,
+				url: 'someUrl',
+				responseTransformer: transformers.response
+			});
+
+			rxws({
+				method: 'get',
+				resource: 'users'
+			}).subscribe((response) => {
+				expect(response.__header.statusCode).toBe(200);
+			});
+
+			let request = JSON.parse(backend.write.calls.argsFor(0));
+
+			backend.mockServerMessage(JSON.stringify({
+				"header": {
+					"correlationId": request.header.correlationId,
+					"customHeader": 5,
+					"statusCode": 200
+				},
+				"body": {
+					"users": [
+						{
+							name: 'Ibn Al Haytham'
+						}
+					]
+				}
+			}));
+
+			let request1 = JSON.parse(backend.write.calls.argsFor(0));
+			let request2 = JSON.parse(backend.write.calls.argsFor(1));
+
+			expect(JSON.stringify(request1)).toBe(JSON.stringify(request2));
+		})
 	});
 });

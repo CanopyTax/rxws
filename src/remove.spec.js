@@ -7,7 +7,7 @@ describe('remove', () => {
 
 	beforeEach(() => {
 		backend = makeMockBackend();
-		setBackend(backend, 'someUrl');
+		setBackend({backend: backend, url: 'someUrl'});
 	});
 
 	it('should make a request', () => {
@@ -96,12 +96,12 @@ describe('remove', () => {
 	});
 
 	it('should throw when no resource is passed', () => {
-		expect(remove.bind(null, '')).toThrow();
-		expect(remove.bind(null, '')).toThrowError('Invalid config');
+		expect(function() { remove('').subscribe(function() {}) }).toThrow();
+		expect(function() { remove('').subscribe(function() {}) }).toThrowError('Invalid config');
 	})
 
 	it('should throw when params are not passed to a parent resource', () => {
-		expect(remove.bind(null, 'users.comments')).toThrow();
-		expect(remove.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
+		expect(function() { remove('users.comments').subscribe(function() {}) }).toThrow();
+		expect(function() { remove('users.comments').subscribe(function() {}) }).toThrowError('Invalid params: param is required for resource users');
 	})
 });

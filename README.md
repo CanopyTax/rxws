@@ -10,8 +10,12 @@ RxWS requires a websocket abstraction layer. By default it comes with a SockJS b
 import rxws from 'rxws';
 import SockJSBackend from 'rxws/SockJSBackend';
 
-rxws.setBackend(SockJSBackend, 'ws://someurl');
-rxws.get('/users')
+rxws.setBackend({
+	backend: SockJSBackend,
+	url: 'ws://someurl'
+});
+
+rxws.get('users')
   .subscribe(data => console.log)
   .catch(error => console.error)
 
@@ -22,11 +26,11 @@ rxws.get('/users')
 Performing a `GET` request:
 ```javascript
 // Request all users
-jxws.get('/users')
+jxws.get('users')
   .subscribe(data => console.log, error => console.error)
   
 // Request a specific user
-jxws.get('/users', {
+jxws.get('users', {
   parameters: { 'users': 13 }
 })
   .subscribe(data => console.log, error => console.error)
@@ -43,7 +47,7 @@ rxws({
 Performing a `POST` request:
 ```javascript
 // Create a user
-jxws.post('/users', {
+jxws.post('users', {
   firstName: 'Johnny',
   lastName: 'Appleseed'
 })
@@ -109,7 +113,16 @@ var subscription = source.subscribe(
 
 ## API
 
-`rxws.setBackend(WebSocketBackend, url: string[, defaultHeaders])`
+`rxws.setBackend(options)`
+```javascript
+rxws.setBackend({
+	backend: rxwsBackendImplementation,
+	url: string,
+	defaultHeaders?: object,
+	requestTransformer?: (request: object, send: Function): null,
+	responseTransformer?: (response: object, reply: Function, retry: Function): null
+})
+```
 
 `rxws(config): observable`
 ```javascript

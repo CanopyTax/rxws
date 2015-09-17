@@ -7,7 +7,7 @@ describe('POST', () => {
 
 	beforeEach(() => {
 		backend = makeMockBackend();
-		setBackend(backend, 'someUrl');
+		setBackend({backend: backend, url: 'someUrl'});
 	});
 
 	it('should make a request', () => {
@@ -120,12 +120,12 @@ describe('POST', () => {
 	});
 
 	it('should throw when no resource is passed', () => {
-		expect(post.bind(null, '')).toThrow();
-		expect(post.bind(null, '')).toThrowError('Invalid config');
+		expect(function() { post('').subscribe(function() {}) }).toThrow();
+		expect(function() { post('').subscribe(function() {}) }).toThrowError('Invalid config');
 	})
 
 	it('should throw when params are not passed to a parent resource', () => {
-		expect(post.bind(null, 'users.comments')).toThrow();
-		expect(post.bind(null, 'users.comments')).toThrowError('Invalid params: param is required for resource users');
+		expect(function() { post('users.comments').subscribe(function() {}) }).toThrow();
+		expect(function() { post('users.comments').subscribe(function() {}) }).toThrowError('Invalid params: param is required for resource users');
 	})
 });

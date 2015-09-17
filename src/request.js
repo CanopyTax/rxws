@@ -1,5 +1,5 @@
 import { Observable } from 'rx';
-import uuid from 'node-uuid';
+import { getRetryTimer, generateRequestObject } from './utils';
 
 let backend;
 let isConnected = false;
@@ -8,83 +8,50 @@ let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
 
-let requestTransformer = function(request) {
-	return request;
+let requestTransformer = function(request, reply) {
+	reply(request);
 }
 
-let responseTransformer = function(response) {
-	return response;
-}
-
-function getRetryTimer(i) {
-	return (Math.log(i) + (Math.random() * (i - 1))) * 1000;
-}
-
-function sanitizeParams(resource, params) {
-	let resourceElements = resource.split('.');
-
-	if (resourceElements.length > 1 && !params) {
-		throw new Error(`Invalid params: param is required for resource ${resourceElements[0]}`);
-	}
-
-	resourceElements.forEach((el, i) => {
-		if (i > 0) {
-			if (!params[el]) throw new Error(`Invalid params: param is required for resource ${el}`);
-		}
-	});
-}
-
-/**
- * Generate a request object which will be sent to the server.
- * The config needs to have a 'resource' and 'method' attribute.
- */
-function generateRequestObject(config) {
-	if (!config || !config.resource || !config.method) {
-		throw new Error('Invalid config', config);
-	}
-
-	sanitizeParams(config.resource, config.parameters);
-
-	let body = config.data;
-	delete config.data;
-
-	let correlationId = uuid();
-	let resourceList = config.resource.split('.');
-
-	if (config.method === 'remove') config.method = 'delete';
-	config.resource = config.method + '.' + config.resource;
-	delete config.method;
-
-	return requestTransformer({
-		header: {
-			...defaultHeaders,
-			...config,
-			correlationId
-		},
-		body: {
-			[resourceList[resourceList.length - 1]]: body
-		}
-	})
+let responseTransformer = function(response, reply, retry) {
+	reply(response);
 }
 
 function sendRequest(request) {
 	backend.write(JSON.stringify(request));
 }
 
-function handleMessage(message) {
+function handleMessageWrapper(message) {
 	let response = JSON.parse(message);
-	response = responseTransformer(response);
+	response = responseTransformer(
+		response, handleMessage.bind(null, message), retryRequest.bind(null, message)
+	);
+}
 
+function retryRequest(message, response) {
+	let observerObj = requestMap[JSON.parse(message).header.correlationId];
+	if (!observerObj) throw new Error('No associated request to retry', rawMessage);
+
+	let request = observerObj.request;
+
+	if (isConnected) {
+		sendRequest(request);
+	} else {
+		requestQueue.push(request);
+	}
+}
+
+function handleMessage(rawMessage, response) {
 	let { header } = response;
 
 	if (header.notification) {
 		return handleServerNotification(response);
 	}
 
-	let observer = requestMap[header.correlationId];
+	let observerObj = requestMap[header.correlationId];
 
-	if (!observer) throw new Error('No associated request for the server message', message);
+	if (!observerObj) throw new Error('No associated request for the server message', rawMessage);
 	else {
+		let observer = observerObj.observer;
 		response.body.__header = response.header;
 		if (response.header.statusCode !== 200) {
 			observer.onError(response.body);
@@ -117,14 +84,21 @@ function sendRequestQueue() {
 	}
 }
 
-export function setBackend(Backend, url, _defaultHeaders = {}, _requestTransformer = requestTransformer, _responseTransformer = responseTransformer) {
-	if (!url) throw new Error('No backend url provided');
-	backend = Backend;
-	defaultHeaders = _defaultHeaders;
-	requestTransformer = _requestTransformer;
-	responseTransformer = _responseTransformer;
+export function setBackend(_options = {}) { //Backend, url, _defaultHeaders = {}, _requestTransformer = requestTransformer, _responseTransformer = responseTransformer) {
+	let options = {
+		requestTransformer, responseTransformer,
+		defaultHeaders: {},
+		..._options
+	};
 
-	backend.connect(url).retryWhen(function(attempts) {
+	if (!options.url) throw new Error('No backend url provided');
+
+	backend = options.backend;
+	defaultHeaders = options.defaultHeaders;
+	requestTransformer = options.requestTransformer;
+	responseTransformer = options.responseTransformer;
+
+	backend.connect(options.url).retryWhen(function(attempts) {
 		return Observable.range(1, 30000).zip(attempts, function(i) {
 			return i;
 		}).flatMap(function(i) {
@@ -136,7 +110,7 @@ export function setBackend(Backend, url, _defaultHeaders = {}, _requestTransform
 	}).subscribe((response) => {
 		isConnected = true;
 		sendRequestQueue();
-		backend.onMessage(handleMessage);
+		backend.onMessage(handleMessageWrapper);
 	});
 }
 
@@ -155,15 +129,20 @@ export function onNotification(type) {
 export default function makeRequest(config) {
 	if (!backend) throw new Error('Must define a websocket backend');
 
-	let request = generateRequestObject(config);
-
 	return Observable.create((observer) => {
-		if (isConnected) {
-			sendRequest(request);
-		} else {
-			requestQueue.push(request);
-		}
+		requestTransformer(
+			generateRequestObject(defaultHeaders)(config),
+			(request) => {
+				if (isConnected) {
+					sendRequest(request);
+				} else {
+					requestQueue.push(request);
+				}
 
-		requestMap[request.header.correlationId] = observer;
+				requestMap[request.header.correlationId] = {
+					observer, request
+				};
+			}
+		);
 	})
 }
