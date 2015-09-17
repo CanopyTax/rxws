@@ -277,4 +277,55 @@ describe('request', () => {
 		});
 	});
 
+	describe('transformers', () => {
+		it('should execute request transformer', () => {
+			let backend = makeMockBackend();
+
+			let transformers = {
+				request: function(req) {
+					return req;
+				}
+			}
+
+			spyOn(transformers, 'request').and.callThrough();
+
+			setBackend(backend, 'someUrl', undefined, transformers.request);
+
+			rxws({
+				method: 'get',
+				resource: 'users'
+			}).subscribe((response) => {});
+
+			expect(transformers.request).toHaveBeenCalled();
+		});
+
+		it('should execute response transformer', () => {
+			let backend = makeMockBackend();
+
+			let transformers = {
+				response: function(res) {
+					return res;
+				}
+			}
+
+			spyOn(transformers, 'response').and.callThrough();
+
+			setBackend(backend, 'someUrl', undefined, undefined, transformers.response);
+
+			backend.mockServerMessage(JSON.stringify({
+				"header": {
+					"apiVersion": "1.2.1", //major, minor, patch
+					"correlationId": "FUFJ-XHJHF-FFFF-RRRR",
+					"notification": "farrot"
+				},
+				"body": {
+					"eventData": {
+						"test": 5
+					}
+				}
+			}));
+
+			expect(transformers.response).toHaveBeenCalled();
+		});
+	});
 });

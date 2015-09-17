@@ -18,7 +18,7 @@ describe('remove', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "remove.wow"
+				"resource": "delete.wow"
 			},
 			"body": {}
 		})).toBe(true);
@@ -36,7 +36,7 @@ describe('remove', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "remove.users",
+				"resource": "delete.users",
 				"parameters": {
 					"users": 1234
 				}
@@ -59,7 +59,7 @@ describe('remove', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "remove.users",
+				"resource": "delete.users",
 				"parameters": {
 					"users": 1234
 				},
@@ -84,7 +84,7 @@ describe('remove', () => {
 
 		expect(messagesAreEqual(request, {
 			"header": {
-				"resource": "remove.users.posts.comments",
+				"resource": "delete.users.posts.comments",
 				"parameters": {
 					users: 1234,
 					posts: 1236,
