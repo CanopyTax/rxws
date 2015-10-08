@@ -120,7 +120,8 @@ rxws.setBackend({
 	url: string,
 	defaultHeaders?: object,
 	requestTransformer?: (request: object, send: Function): null,
-	responseTransformer?: (response: object, reply: Function, retry: Function): null
+	responseTransformer?: (response: object, reply: Function, retry: Function): null,
+	timeout?: 10000
 })
 ```
 
