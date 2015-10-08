@@ -53,6 +53,9 @@ function handleMessage(rawMessage, response) {
 	else {
 		let observer = observerObj.observer;
 		response.body.__header = response.header;
+
+		clearTimeout(observerObj.timeout);
+
 		if (response.header.statusCode !== 200) {
 			observer.onError(response.body);
 			observer.onCompleted(response.body);
@@ -139,8 +142,12 @@ export default function makeRequest(config) {
 					requestQueue.push(request);
 				}
 
+				let timeout = config.timeout || 10000;
+
 				requestMap[request.header.correlationId] = {
-					observer, request
+					observer, request, timeout: setTimeout(() => {
+						observer.onError('Never received server response within timeout ' + timeout);
+					}, timeout)
 				};
 			}
 		);

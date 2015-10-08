@@ -104,6 +104,91 @@ describe('request', () => {
 		});
 	});
 
+	describe('Timeouts', () => {
+		beforeEach(function() {
+			jasmine.clock().install();
+		});
+
+		afterEach(function() {
+			jasmine.clock().uninstall();
+		});
+
+		it('should error if no response within a given timeout', (run) => {
+			let backend = makeMockBackend();
+			setBackend({backend: backend, url: 'someUrl'});
+
+			rxws({
+				method: 'get',
+				resource: 'users',
+				timeout: 100
+			}).subscribe((response) => {
+				expect('response should never come').toFail();
+				run();
+			}, (error) => {
+				expect(error).toBe('Never received server response within timeout 100');
+				run();
+			});
+
+			jasmine.clock().tick(101);
+		});
+
+		it('should error if no response within default timeout', (run) => {
+			let backend = makeMockBackend();
+			setBackend({backend: backend, url: 'someUrl'});
+
+			rxws({
+				method: 'get',
+				resource: 'users'
+			}).subscribe((response) => {
+				expect('response should never come').toFail();
+				run();
+			}, (error) => {
+				expect(error).toBe('Never received server response within timeout 10000');
+				run();
+			});
+
+			jasmine.clock().tick(10001);
+		});
+
+		it('should not error if a response is sent', (run) => {
+
+			let backend = makeMockBackend();
+			setBackend({backend: backend, url: 'someUrl'});
+
+			rxws({
+				method: 'get',
+				resource: 'users'
+			}).subscribe((response) => {
+				expect(response.users[0].name).toBe('Ibn Al Haytham')
+			}, (err) => {
+				expect(err).toFail()
+			});
+
+			let request = JSON.parse(backend.write.calls.argsFor(0));
+
+			backend.mockServerMessage(JSON.stringify({
+				"header": {
+					"correlationId": request.header.correlationId,
+					"customHeader": 5,
+					"statusCode": 200
+				},
+				"body": {
+					"users": [
+						{
+							name: 'Ibn Al Haytham'
+						}
+					]
+				}
+			}));
+
+			setTimeout(() => {
+				run();
+			}, 11000);
+
+			jasmine.clock().tick(11001);
+		});
+	});
+
 	describe('Request responses', () => {
 		it('should throw an error if a correlation id has no resolution in the client', () => {
 			let backend = makeMockBackend();
