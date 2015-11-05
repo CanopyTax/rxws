@@ -121,7 +121,8 @@ rxws.setBackend({
 	defaultHeaders?: object,
 	requestTransformer?: (request: object, send: Function): null,
 	responseTransformer?: (response: object, reply: Function, retry: Function): null,
-	timeout?: 10000
+	timeout?: 10000,
+	onConnectionError?: (error: string): null
 })
 ```
 
