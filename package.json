@@ -1,6 +1,6 @@
 {
   "name": "rxws",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "description": "A RESTful reactive JavaScript implmentation on top of web sockets",
   "main": "lib/rxws.js",
   "scripts": {
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "node-uuid": "^1.4.3",
-    "rx": "^3.1.0",
+    "rx": "3.1.2",
     "sockjs-client": "^1.0.3"
   }
 }

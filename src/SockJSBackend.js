@@ -3,6 +3,12 @@ import SockJS from 'sockjs-client';
 
 let sock;
 
+function getTestUrl(url) {
+	let parser = document.createElement('a');
+	parser.href = url;
+	return parser.protocol + '//' + parser.host + parser.pathname + '/info' + parser.search;
+}
+
 function tryConnect(url, observer) {
 	sock = new SockJS(url);
 
@@ -11,7 +17,18 @@ function tryConnect(url, observer) {
 	}
 
 	sock.onclose = function() {
-		observer.onError('Lost connection')
+		fetch(getTestUrl(url), {
+			method: 'get',
+			credentials: 'include'
+		}).then((response) => {
+			if (response.status === 401) {
+				observer.onError('Unauthorized');
+			} else {
+				observer.onError('Lost connection');
+			}
+		}).catch(() => {
+			observer.onError('Lost connection');
+		});
 	}
 
 	sock.onerror = function(e) {
@@ -41,3 +58,4 @@ export default {
 		sock.close();
 	}
 }
+

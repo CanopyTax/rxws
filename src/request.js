@@ -102,7 +102,10 @@ export function setBackend(_options = {}) { //Backend, url, _defaultHeaders = {}
 	responseTransformer = options.responseTransformer;
 
 	backend.connect(options.url).retryWhen(function(attempts) {
-		return Observable.range(1, 30000).zip(attempts, function(i) {
+		return Observable.range(1, 30000).zip(attempts, function(i, error) {
+			if (options.onConnectionError) {
+				options.onConnectionError.call(null, error);
+			}
 			return i;
 		}).flatMap(function(i) {
 			isConnected = false;
