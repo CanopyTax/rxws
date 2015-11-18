@@ -8,7 +8,7 @@ function sanitizeParams(resource, params) {
 	}
 
 	resourceElements.forEach((el, i) => {
-		if (i > 0) {
+		if (i !== (resourceElements.length - 1)) {
 			if (!params[el]) throw new Error(`Invalid params: param is required for resource ${el}`);
 		}
 	});
