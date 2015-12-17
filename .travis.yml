@@ -6,4 +6,5 @@ before_script:
       - npm install -g codecov
       - npm run build
 script:
-    - npm run test
+    - npm run coverage
+    - coverage
