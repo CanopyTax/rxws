@@ -371,37 +371,13 @@ describe('request', () => {
 	});
 
 	describe('transformers', () => {
+
 		it('should execute request transformer', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				request: function(req, send) {
-					send(req);
-				}
-			}
-
-			spyOn(transformers, 'request').and.callThrough();
-
-			setBackend({
-				backend: backend,
-				url: 'someUrl',
-				requestTransformer: transformers.request
-			});
-
-			rxws({
-				method: 'get',
-				resource: 'users'
-			}).subscribe((response) => {});
-
-			expect(transformers.request).toHaveBeenCalled();
-		});
-
-		it('should execute response transformer', () => {
-			let backend = makeMockBackend();
-
-			let transformers = {
-				response: function(res, reply, retry) {
-					reply(res);
+				response: ({req, reply, retry}) => {
+					reply(req);
 				}
 			}
 
@@ -412,6 +388,8 @@ describe('request', () => {
 				url: 'someUrl',
 				responseTransformer: transformers.response
 			});
+
+			rxws.use().subscribe(transformers.response);
 
 			backend.mockServerMessage(JSON.stringify({
 				"header": {
@@ -429,20 +407,127 @@ describe('request', () => {
 			expect(transformers.response).toHaveBeenCalled();
 		});
 
-		it('should retry requests', () => {
+		it('should route through multiple request handlers', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				response: function(res, reply, retry) {
-					retry();
+				response1: ({req, reply, retry, next}) => {
+					next();
+				},
+				response2: ({req, reply, retry, next}) => {
+					next();
+				},
+				response3: ({req, reply, retry, next}) => {
+					next();
+				},
+				response4: ({req, reply, retry}) => {
+					reply(req);
 				}
 			}
+
+			spyOn(transformers, 'response1').and.callThrough();
+			spyOn(transformers, 'response2').and.callThrough();
+			spyOn(transformers, 'response3').and.callThrough();
+			spyOn(transformers, 'response4').and.callThrough();
 
 			setBackend({
 				backend: backend,
 				url: 'someUrl',
 				responseTransformer: transformers.response
 			});
+
+			rxws.use().subscribe(transformers.response1);
+			rxws.use().subscribe(transformers.response2);
+			rxws.use().subscribe(transformers.response3);
+			rxws.use().subscribe(transformers.response4);
+
+			backend.mockServerMessage(JSON.stringify({
+				"header": {
+					"apiVersion": "1.2.1", //major, minor, patch
+					"correlationId": "FUFJ-XHJHF-FFFF-RRRR",
+					"notification": "farrot"
+				},
+				"body": {
+					"eventData": {
+						"test": 5
+					}
+				}
+			}));
+
+			expect(transformers.response1).toHaveBeenCalled();
+			expect(transformers.response2).toHaveBeenCalled();
+			expect(transformers.response3).toHaveBeenCalled();
+			expect(transformers.response4).toHaveBeenCalled();
+		});
+
+		it('should short circuit middleware', () => {
+			let backend = makeMockBackend();
+
+			let transformers = {
+				response1: ({req, reply, retry, next}) => {
+					next();
+				},
+				response2: ({req, reply, retry, next}) => {
+					reply(req);
+				},
+				response3: ({req, reply, retry, next}) => {
+					next();
+				},
+				response4: ({req, reply, retry}) => {
+					reply(req);
+				}
+			}
+
+			spyOn(transformers, 'response1').and.callThrough();
+			spyOn(transformers, 'response2').and.callThrough();
+			spyOn(transformers, 'response3').and.callThrough();
+			spyOn(transformers, 'response4').and.callThrough();
+
+			setBackend({
+				backend: backend,
+				url: 'someUrl',
+				responseTransformer: transformers.response
+			});
+
+			rxws.use().subscribe(transformers.response1);
+			rxws.use().subscribe(transformers.response2);
+			rxws.use().subscribe(transformers.response3);
+			rxws.use().subscribe(transformers.response4);
+
+			backend.mockServerMessage(JSON.stringify({
+				"header": {
+					"apiVersion": "1.2.1", //major, minor, patch
+					"correlationId": "FUFJ-XHJHF-FFFF-RRRR",
+					"notification": "farrot"
+				},
+				"body": {
+					"eventData": {
+						"test": 5
+					}
+				}
+			}));
+
+			expect(transformers.response1).toHaveBeenCalled();
+			expect(transformers.response2).toHaveBeenCalled();
+			expect(transformers.response3).not.toHaveBeenCalled();
+			expect(transformers.response4).not.toHaveBeenCalled();
+		});
+
+		it('should retry requests', () => {
+			let backend = makeMockBackend();
+
+			let transformers = {
+				response: ({req, reply, retry}) => {
+					retry();
+				}
+			}
+
+			setBackend({
+				backend: backend,
+				url: 'someUrl'
+			});
+
+			rxws.use().subscribe(transformers.response);
 
 			rxws({
 				method: 'get',

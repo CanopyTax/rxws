@@ -26,11 +26,11 @@ rxws.get('users')
 Performing a `GET` request:
 ```javascript
 // Request all users
-jxws.get('users')
+rxws.get('users')
   .subscribe(data => console.log, error => console.error)
   
 // Request a specific user
-jxws.get('users', {
+rxws.get('users', {
   parameters: { 'users': 13 }
 })
   .subscribe(data => console.log, error => console.error)
@@ -47,7 +47,7 @@ rxws({
 Performing a `POST` request:
 ```javascript
 // Create a user
-jxws.post('users', {
+rxws.post('users', {
   firstName: 'Johnny',
   lastName: 'Appleseed'
 })
@@ -68,7 +68,7 @@ rxws({
 Nested resources:
 ```javascript
 // Request a comment from a specific post
-jxws.get('posts.comments', {
+rxws.get('posts.comments', {
   parameters: { 'posts': 13, 'comments': 15 }
 })
   .subscribe(data => console.log, error => console.error)
@@ -78,7 +78,7 @@ Custom headers:
 
 ```javascript
 // Request all comments from a post
-jxws.get('posts.comments', {
+rxws.get('posts.comments', {
   parameters: { 'posts': 13 },
   apiVersion: '1.2.1',
   accessToken: '7fgnasdfvy0afdsjfjdls',
@@ -90,11 +90,20 @@ jxws.get('posts.comments', {
 Server Notifications:
 ```javascript
 // Listen for new posts
-jxws.onNotification('newPost')
+rxws.onNotification('newPost')
   .forEach((messageBody) => {
-    jxws.get('posts', { parameters: { posts: messageBody.id } })
+    rxws.get('posts', { parameters: { posts: messageBody.id } })
       .subscribe(data => console.log, error => console.error);
   })
+```
+
+Middleware:
+``javascript`
+rxws.use()
+	.subscribe(({req, reply, retry, next}) => {
+		req.requestTime = Date.now();
+		next();
+	});
 ```
 
 Reactive example:

@@ -8,23 +8,44 @@ let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
 
+let middlewareQueue = [
+	{
+		onNext: ({req, reply}) => {
+			reply(req);
+		}
+	}
+];
+
 let requestTransformer = function(request, reply) {
 	reply(request);
-}
-
-let responseTransformer = function(response, reply, retry) {
-	reply(response);
-}
+};
 
 function sendRequest(request) {
 	backend.write(JSON.stringify(request));
 }
 
 function handleMessageWrapper(message) {
-	let response = JSON.parse(message);
-	response = responseTransformer(
-		response, handleMessage.bind(null, message), retryRequest.bind(null, message)
-	);
+	let request = JSON.parse(message);
+
+	executeMiddleware(0, middlewareQueue, request, message);
+}
+
+function executeMiddleware(index, middlewareQueue, request, rawMessage) {
+	let middleware = middlewareQueue[index];
+
+	if (!middleware) throw new Error("Invalid middleware");
+
+	middleware.onNext({
+		req: request,
+		rawMessage: rawMessage,
+		reply: handleMessage.bind(null, rawMessage),
+		retry: retryRequest.bind(null, rawMessage),
+		next: (err) => {
+			if (!err) {
+				executeMiddleware(++index, middlewareQueue, request, rawMessage);
+			}
+		}
+	})
 }
 
 function retryRequest(message, response) {
@@ -87,9 +108,12 @@ function sendRequestQueue() {
 	}
 }
 
-export function setBackend(_options = {}) { //Backend, url, _defaultHeaders = {}, _requestTransformer = requestTransformer, _responseTransformer = responseTransformer) {
+export function setBackend(_options = {}) {
+	if (middlewareQueue.length > 1) {
+		middlewareQueue.splice(0, middlewareQueue.length - 1);
+	}
+
 	let options = {
-		requestTransformer, responseTransformer,
 		defaultHeaders: {},
 		..._options
 	};
@@ -98,8 +122,6 @@ export function setBackend(_options = {}) { //Backend, url, _defaultHeaders = {}
 
 	backend = options.backend;
 	defaultHeaders = options.defaultHeaders;
-	requestTransformer = options.requestTransformer;
-	responseTransformer = options.responseTransformer;
 
 	backend.connect(options.url).retryWhen(function(attempts) {
 		return Observable.range(1, 30000).zip(attempts, function(i, error) {
@@ -132,27 +154,31 @@ export function onNotification(type) {
 	return notificationMap[type].observable;
 }
 
+export function use() {
+	return Observable.create((observer) => {
+		let defaultMiddleware = middlewareQueue.pop();
+		middlewareQueue.push(observer);
+		middlewareQueue.push(defaultMiddleware);
+	});
+}
+
 export default function makeRequest(config) {
 	if (!backend) throw new Error('Must define a websocket backend');
 
 	return Observable.create((observer) => {
-		requestTransformer(
-			generateRequestObject(defaultHeaders)(config),
-			(request) => {
-				if (isConnected) {
-					sendRequest(request);
-				} else {
-					requestQueue.push(request);
-				}
+		let request = generateRequestObject(defaultHeaders)(config);
+		if (isConnected) {
+			sendRequest(request);
+		} else {
+			requestQueue.push(request);
+		}
 
-				let timeout = config.timeout || 10000;
+		let timeout = config.timeout || 10000;
 
-				requestMap[request.header.correlationId] = {
-					observer, request, timeout: setTimeout(() => {
-						observer.onError('Never received server response within timeout ' + timeout);
-					}, timeout)
-				};
-			}
-		);
+		requestMap[request.header.correlationId] = {
+			observer, request, timeout: setTimeout(() => {
+				observer.onError('Never received server response within timeout ' + timeout);
+			}, timeout)
+		};
 	})
 }
