@@ -1,17 +1,20 @@
 # RxWS
 A RESTful Reactive JavaScript Implementation on top of Web Sockets. This includes,
-`GET`, `POST`, 'PUT`, 'REMOVE` (DELETE), `PATCH`, and `HEAD`. RxWS gaurantees message delivery by generating
+`GET`, `POST`, `PUT`, `REMOVE` (DELETE), `PATCH`, and `HEAD`. RxWS gaurantees message delivery by generating
 a correlation id for each message (to and from the server). Both the server and client automatically send an
 acknowledgement response for each request. If there is no acknowledgement after a timeout, an error is thrown.
 
+RxWS implements a [RESTful protocol](https://github.com/blittle/rxws-socketio/blob/master/protocol.md). You can use any websocket server as long as it implements the same protocol. By default RxWS supports SocketIO with [rxws-socketio](https://github.com/blittle/rxws-socketio)
+
 ## Setup
-RxWS requires a websocket abstraction layer. By default it comes with a SockJS backend implementation.
+RxWS requires a websocket abstraction layer. By default it supports both SockJS and [SocketIO](https://github.com/blittle/rxws-socketio).
+
 ```javascript
 import rxws from 'rxws';
-import SockJSBackend from 'rxws/SockJSBackend';
+import SocketIOBackend from 'rxws-socketio/SocketIOBackend';
 
 rxws.setBackend({
-	backend: SockJSBackend,
+	backend: SocketIOBackend,
 	url: 'ws://someurl'
 });
 
