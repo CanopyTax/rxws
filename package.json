@@ -5,7 +5,7 @@
   "main": "lib/rxws.js",
   "scripts": {
     "test": "node node_modules/jasmine/bin/jasmine.js",
-    "build": "node node_modules/babel/bin/babel.js src --out-dir lib",
+    "build": "babel src --out-dir lib",
     "clean": "rm -rf lib",
     "test-watch": "node node_modules/jasmine-node/bin/jasmine-node --autoTest lib",
     "watch": "node node_modules/babel/bin/babel.js src --out-dir lib --watch",
