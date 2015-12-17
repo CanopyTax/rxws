@@ -1,5 +1,5 @@
 # RxWS
-Status: [![Build Status](https://travis-ci.org/CanopyTax/rxws.svg?branch=master)](https://travis-ci.org/canopytax/rxws) [![codecov.io](https://codecov.io/github/canopytax/rxws/coverage.svg?branch=master)](https://codecov.io/github/canopytax/rxws?branch=master)
+Status: [![Build Status](https://travis-ci.org/CanopyTax/rxws.svg?branch=master)](https://travis-ci.org/canopytax/rxws) [![codecov.io](https://codecov.io/github/CanopyTax/rxws/coverage.svg?branch=master)](https://codecov.io/github/canopytax/rxws?branch=master)
 
 RxWS is a RESTful reactive JavaScript implementation on top of web sockets. This includes,
 `GET`, `POST`, `PUT`, `REMOVE` (DELETE), `PATCH`, and `HEAD`. RxWS guarantees message delivery by generating
