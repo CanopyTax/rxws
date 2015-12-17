@@ -1,4 +1,6 @@
 # RxWS
+Status: [![Build Status](https://travis-ci.org/canopytax/rxws.png?branch=master)](https://travis-ci.org/canopytax/rxws) [![codecov.io](https://codecov.io/github/canopytax/rxws/coverage.svg?branch=master)](https://codecov.io/github/canopytax/rxws?branch=master)
+
 RxWS is a RESTful reactive JavaScript implementation on top of web sockets. This includes,
 `GET`, `POST`, `PUT`, `REMOVE` (DELETE), `PATCH`, and `HEAD`. RxWS guarantees message delivery by generating
 a correlation id for each message (to and from the server). Both the server and client automatically send an
