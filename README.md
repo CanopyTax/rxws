@@ -1,5 +1,5 @@
 # RxWS
-A RESTful Reactive JavaScript Implementation on top of Web Sockets. This includes,
+RxWS is a RESTful reactive JavaScript implementation on top of web sockets. This includes,
 `GET`, `POST`, `PUT`, `REMOVE` (DELETE), `PATCH`, and `HEAD`. RxWS gaurantees message delivery by generating
 a correlation id for each message (to and from the server). Both the server and client automatically send an
 acknowledgement response for each request. If there is no acknowledgement after a timeout, an error is thrown.
