@@ -114,7 +114,7 @@ rxws.use()
 ```
 
 ```javascript
-Use middleware to retry requests
+// Use middleware to retry requests
 
 rxws.use()
 	.subscribe(({res, reply, retry, next}) => {
