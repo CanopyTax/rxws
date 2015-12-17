@@ -2,6 +2,7 @@ import put from './put';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
+/* istanbul ignore next */
 describe('put', () => {
 	let backend;
 

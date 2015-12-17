@@ -2,6 +2,7 @@ import head from './head';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
+/* istanbul ignore next */
 describe('HEAD', () => {
 	let backend;
 

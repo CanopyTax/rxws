@@ -1,5 +1,6 @@
 import { generateRequestObject } from './utils';
 
+/* istanbul ignore next */
 describe('utils', () => {
 	describe('generateRequestObject', () => {
 		it('should include default headers in request', () => {

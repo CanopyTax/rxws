@@ -2,6 +2,7 @@ import remove from './remove';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
+/* istanbul ignore next */
 describe('remove', () => {
 	let backend;
 

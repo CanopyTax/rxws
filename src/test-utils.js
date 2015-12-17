@@ -1,6 +1,7 @@
 import { Observable } from 'rx';
 import { isEqual, cloneDeep } from 'lodash';
 
+/* istanbul ignore next */
 export function makeMockBackend() {
 	let callback;
 
@@ -35,6 +36,7 @@ export function makeMockBackend() {
 	return backend;
 }
 
+/* istanbul ignore next */
 export function messagesAreEqual(actual, expected, preserveCorrelation) {
 	actual = cloneDeep(actual);
 	if (!preserveCorrelation) delete actual.header.correlationId;

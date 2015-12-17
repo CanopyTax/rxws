@@ -3,6 +3,7 @@ import rxws from './rxws';
 
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
+/* istanbul ignore next */
 describe('request', () => {
 
 	describe('setup', () => {

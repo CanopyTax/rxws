@@ -2,6 +2,7 @@ import post from './post';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
+/* istanbul ignore next */
 describe('POST', () => {
 	let backend;
 

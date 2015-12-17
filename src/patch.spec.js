@@ -2,6 +2,7 @@ import patch from './patch';
 import { setBackend } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
+/* istanbul ignore next */
 describe('patch', () => {
 	let backend;
 
