@@ -10,39 +10,35 @@ let defaultHeaders = {};
 
 let middlewareQueue = [
 	{
-		onNext: ({req, reply}) => {
-			reply(req);
+		onNext: ({res, reply}) => {
+			reply(res);
 		}
 	}
 ];
-
-let requestTransformer = function(request, reply) {
-	reply(request);
-};
 
 function sendRequest(request) {
 	backend.write(JSON.stringify(request));
 }
 
 function handleMessageWrapper(message) {
-	let request = JSON.parse(message);
+	let response = JSON.parse(message);
 
-	executeMiddleware(0, middlewareQueue, request, message);
+	executeMiddleware(0, middlewareQueue, response, message);
 }
 
-function executeMiddleware(index, middlewareQueue, request, rawMessage) {
+function executeMiddleware(index, middlewareQueue, response, rawMessage) {
 	let middleware = middlewareQueue[index];
 
 	if (!middleware) throw new Error("Invalid middleware");
 
 	middleware.onNext({
-		req: request,
+		res: response,
 		rawMessage: rawMessage,
 		reply: handleMessage.bind(null, rawMessage),
 		retry: retryRequest.bind(null, rawMessage),
 		next: (err) => {
 			if (!err) {
-				executeMiddleware(++index, middlewareQueue, request, rawMessage);
+				executeMiddleware(++index, middlewareQueue, response, rawMessage);
 			}
 		}
 	})

@@ -98,12 +98,33 @@ rxws.onNotification('newPost')
 ```
 
 Middleware:
-``javascript`
+
+```javascript
+// Middleware progress from one another in the order they are defined
 rxws.use()
-	.subscribe(({req, reply, retry, next}) => {
-		req.requestTime = Date.now();
+	.subscribe(({res, reply, retry, next}) => {
+		res.requestTime = Date.now();
 		next();
 	});
+
+rxws.use()
+	.subscribe(({res, reply, retry, next}) => {
+		reply(res);
+	});
+```
+
+```javascript
+Use middleware to retry requests
+
+rxws.use()
+	.subscribe(({res, reply, retry, next}) => {
+		if (res.header.statusCode === 401) {
+			auth.refreshAuthToken()
+				.then(() => retry())
+		} else {
+			reply(res);
+		}
+	})
 ```
 
 Reactive example:

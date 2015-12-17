@@ -370,14 +370,14 @@ describe('request', () => {
 		});
 	});
 
-	describe('transformers', () => {
+	describe('middleware', () => {
 
-		it('should execute request transformer', () => {
+		it('should execute response transformer', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				response: ({req, reply, retry}) => {
-					reply(req);
+				response: ({res, reply, retry}) => {
+					reply(res);
 				}
 			}
 
@@ -411,17 +411,17 @@ describe('request', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				response1: ({req, reply, retry, next}) => {
+				response1: ({res, reply, retry, next}) => {
 					next();
 				},
-				response2: ({req, reply, retry, next}) => {
+				response2: ({res, reply, retry, next}) => {
 					next();
 				},
-				response3: ({req, reply, retry, next}) => {
+				response3: ({res, reply, retry, next}) => {
 					next();
 				},
-				response4: ({req, reply, retry}) => {
-					reply(req);
+				response4: ({res, reply, retry}) => {
+					reply(res);
 				}
 			}
 
@@ -464,17 +464,17 @@ describe('request', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				response1: ({req, reply, retry, next}) => {
+				response1: ({res, reply, retry, next}) => {
 					next();
 				},
-				response2: ({req, reply, retry, next}) => {
-					reply(req);
+				response2: ({res, reply, retry, next}) => {
+					reply(res);
 				},
-				response3: ({req, reply, retry, next}) => {
+				response3: ({res, reply, retry, next}) => {
 					next();
 				},
-				response4: ({req, reply, retry}) => {
-					reply(req);
+				response4: ({res, reply, retry}) => {
+					reply(res);
 				}
 			}
 
@@ -517,7 +517,7 @@ describe('request', () => {
 			let backend = makeMockBackend();
 
 			let transformers = {
-				response: ({req, reply, retry}) => {
+				response: ({res, reply, retry}) => {
 					retry();
 				}
 			}
