@@ -10,8 +10,10 @@ let defaultHeaders = {};
 
 let middlewareQueue = [
 	{
-		onNext: ({res, reply}) => {
-			reply(res);
+		observer: {
+			onNext: ({res, reply}) => {
+				reply(res);
+			}
 		}
 	}
 ];
@@ -31,7 +33,7 @@ function executeMiddleware(index, middlewareQueue, response, rawMessage) {
 
 	if (!middleware) throw new Error("Invalid middleware");
 
-	middleware.onNext({
+	middleware.observer.onNext({
 		res: response,
 		rawMessage: rawMessage,
 		reply: handleMessage.bind(null, rawMessage),
