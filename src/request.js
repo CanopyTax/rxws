@@ -8,7 +8,7 @@ let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
 
-let middlewareQueue = [
+let useMiddlewareQueue = [
 	{
 		observer: {
 			onNext: ({res, reply}) => {
@@ -18,19 +18,53 @@ let middlewareQueue = [
 	}
 ];
 
+let requestMiddlewareQueue = [
+	{
+		observer: {
+			onNext: ({req, send}) => {
+				send(req);
+			}
+		}
+	}
+];
+
 function sendRequest(request) {
+	executeRequestMiddleware(0, requestMiddlewareQueue, request);
+}
+
+function transmitRequest(request) {
 	backend.write(JSON.stringify(request));
 }
+
+function executeRequestMiddleware(index, requestMiddlewareQueue, request) {
+	let middleware = requestMiddlewareQueue[index];
+	if (!middleware) throw new Error("Invalid middleware");
+
+	console.log(transmitRequest);
+
+	middleware.observer.onNext({
+		req: request,
+		send: transmitRequest,
+		next: (err) => {
+			if (!err) {
+				executeRequestMiddleware(++index, requestMiddlewareQueue, request);
+			} else {
+				throw new Error(err);
+			}
+		}
+	})
+}
+
+
 
 function handleMessageWrapper(message) {
 	let response = JSON.parse(message);
 
-	executeMiddleware(0, middlewareQueue, response, message);
+	executeUseMiddleware(0, useMiddlewareQueue, response, message);
 }
 
-function executeMiddleware(index, middlewareQueue, response, rawMessage) {
-	let middleware = middlewareQueue[index];
-
+function executeUseMiddleware(index, useMiddlewareQueue, response, rawMessage) {
+	let middleware = useMiddlewareQueue[index];
 	if (!middleware) throw new Error("Invalid middleware");
 
 	middleware.observer.onNext({
@@ -40,7 +74,9 @@ function executeMiddleware(index, middlewareQueue, response, rawMessage) {
 		retry: retryRequest.bind(null, rawMessage),
 		next: (err) => {
 			if (!err) {
-				executeMiddleware(++index, middlewareQueue, response, rawMessage);
+				executeUseMiddleware(++index, useMiddlewareQueue, response, rawMessage);
+			} else {
+				throw new Error(err);
 			}
 		}
 	})
@@ -86,7 +122,7 @@ function handleMessage(rawMessage, response) {
 }
 
 function handleServerNotification(message) {
-	sendRequest({
+	transmitRequest({
 		header: {
 			...defaultHeaders,
 			...message.header
@@ -107,8 +143,8 @@ function sendRequestQueue() {
 }
 
 export function setBackend(_options = {}) {
-	if (middlewareQueue.length > 1) {
-		middlewareQueue.splice(0, middlewareQueue.length - 1);
+	if (useMiddlewareQueue.length > 1) {
+		useMiddlewareQueue.splice(0, useMiddlewareQueue.length - 1);
 	}
 
 	let options = {
@@ -154,9 +190,17 @@ export function onNotification(type) {
 
 export function use() {
 	return Observable.create((observer) => {
-		let defaultMiddleware = middlewareQueue.pop();
-		middlewareQueue.push(observer);
-		middlewareQueue.push(defaultMiddleware);
+		let defaultMiddleware = useMiddlewareQueue.pop();
+		useMiddlewareQueue.push(observer);
+		useMiddlewareQueue.push(defaultMiddleware);
+	});
+}
+
+export function requestUse() {
+	return Observable.create((observer) => {
+		let defaultMiddleware = requestMiddlewareQueue.pop();
+		requestMiddlewareQueue.push(observer);
+		requestMiddlewareQueue.push(defaultMiddleware);
 	});
 }
 
