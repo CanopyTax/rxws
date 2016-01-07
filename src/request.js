@@ -40,8 +40,6 @@ function executeRequestMiddleware(index, requestMiddlewareQueue, request) {
 	let middleware = requestMiddlewareQueue[index];
 	if (!middleware) throw new Error("Invalid middleware");
 
-	console.log(transmitRequest);
-
 	middleware.observer.onNext({
 		req: request,
 		send: transmitRequest,
