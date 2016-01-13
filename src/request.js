@@ -82,7 +82,7 @@ function executeUseMiddleware(index, useMiddlewareQueue, response, rawMessage) {
 
 function retryRequest(message, response) {
 	let observerObj = requestMap[JSON.parse(message).header.correlationId];
-	if (!observerObj) throw new Error('No associated request to retry', rawMessage);
+	if (!observerObj) throw new Error('No associated request to retry', message);
 
 	let request = observerObj.request;
 
