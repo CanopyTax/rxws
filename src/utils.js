@@ -30,11 +30,14 @@ export function generateRequestObject(defaultHeaders) {
 
 		sanitizeParams(config.resource, config.parameters);
 
-		let body = config.data;
+		const body = config.data;
 		delete config.data;
 
-		let correlationId = uuid();
-		let resourceList = config.resource.split('.');
+		const extraResources = config.extraResources || {};
+		delete config.extraResources;
+
+		const correlationId = uuid();
+		const resourceList = config.resource.split('.');
 
 		if (config.method === 'remove') config.method = 'delete';
 		config.resource = config.method + '.' + config.resource;
@@ -47,6 +50,7 @@ export function generateRequestObject(defaultHeaders) {
 				correlationId
 			},
 			body: {
+				...extraResources,
 				[resourceList[resourceList.length - 1]]: body
 			}
 		}

@@ -183,3 +183,15 @@ rxws({
 `rxws.patch(resource[, data[, config]]): observable`
 
 `rxws.onMessage(type: string): observable`
+
+`config obbject:`
+```javascript
+{
+	resource: string,
+	method: string,
+	parameters: object,
+	data: object,
+	extraResources: object,
+	queryParameters: object
+}
+```

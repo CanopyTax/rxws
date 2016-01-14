@@ -120,6 +120,53 @@ describe('POST', () => {
 		})).toBe(true);
 	});
 
+	fit('should make a request with extra resources', () => {
+		post('users.posts.comments', {
+			name: 'test'
+		}, {
+			parameters: {
+				users: 1234,
+				posts: 1236
+			},
+			extraResources: {
+				notifications: {
+					template: 'client-invite',
+					url: 'https:/./app.canopytax.com'
+				},
+				invoices: {
+					id: 123,
+					name: 'your mom'
+				}
+			}
+		}).subscribe(() => {});
+
+		expect(backend.write).toHaveBeenCalled();
+		let request = JSON.parse(backend.write.calls.argsFor(0));
+
+		expect(messagesAreEqual(request, {
+			"header": {
+				"resource": "post.users.posts.comments",
+				"parameters": {
+					users: 1234,
+					posts: 1236
+				}
+			},
+			"body": {
+				"comments": {
+					name: 'test'
+				},
+				notifications: {
+					template: 'client-invite',
+					url: 'https:/./app.canopytax.com'
+				},
+				invoices: {
+					id: 123,
+					name: 'your mom'
+				}
+			}
+		})).toBe(true);
+	});
+
 	it('should throw when no resource is passed', () => {
 		expect(function() { post('').subscribe(function() {}) }).toThrow();
 		expect(function() { post('').subscribe(function() {}) }).toThrowError('Invalid config');
