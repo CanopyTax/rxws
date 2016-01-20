@@ -1,4 +1,4 @@
-import uuid from 'node-uuid';
+import uuid from 'simply-uuid';
 
 function sanitizeParams(resource, params) {
 	let resourceElements = resource.split('.');
@@ -36,7 +36,7 @@ export function generateRequestObject(defaultHeaders) {
 		const extraResources = config.extraResources || {};
 		delete config.extraResources;
 
-		const correlationId = uuid();
+		const correlationId = uuid.generate();
 		const resourceList = config.resource.split('.');
 
 		if (config.method === 'remove') config.method = 'delete';
