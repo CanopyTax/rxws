@@ -3,6 +3,7 @@ import { getRetryTimer, generateRequestObject } from './utils';
 
 let backend;
 let isConnected = false;
+let mockRequests = null;
 let requestQueue = [];
 let requestMap = {};
 let notificationMap = {};
@@ -202,11 +203,35 @@ export function requestUse() {
 	});
 }
 
+/**
+ * If executed with a callback, no requests will actually made to the server
+ * instead the callback will be executed with the request object that would
+ * have been sent to the server.
+ *
+ * @param {Function} cb the callback that will be executed
+ */
+export function startMockingRequests(cb) {
+	mockRequests = cb;
+}
+
+/**
+ * Stop mocking requests.
+ */
+export function stopMockingRequests() {
+	mockRequests = null;
+}
+
 export default function makeRequest(config) {
 	if (!backend) throw new Error('Must define a websocket backend');
 
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
+
+		if (mockRequests) {
+			// return so we don't proceed with making the actual server request
+			return mockRequests(request);
+		}
+
 		if (isConnected) {
 			sendRequest(request);
 		} else {

@@ -5,7 +5,14 @@ import put from './put';
 import head from './head';
 import patch from './patch';
 
-import makeRequest, { setBackend, onNotification, use, requestUse } from './request';
+import makeRequest, {
+	setBackend,
+	onNotification,
+	use,
+	requestUse,
+	startMockingRequests,
+	stopMockingRequests
+} from './request';
 
 makeRequest.remove = remove;
 makeRequest.get = get;
@@ -18,5 +25,8 @@ makeRequest.setBackend = setBackend;
 makeRequest.onNotification = onNotification;
 makeRequest.use = use;
 makeRequest.requestUse = requestUse;
+
+makeRequest.startMockingRequests = startMockingRequests;
+makeRequest.stopMockingRequests = stopMockingRequests;
 
 export default makeRequest;
