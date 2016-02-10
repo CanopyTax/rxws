@@ -11,7 +11,8 @@ import makeRequest, {
 	use,
 	requestUse,
 	startMockingRequests,
-	stopMockingRequests
+	stopMockingRequests,
+	reset
 } from './request';
 
 makeRequest.remove = remove;
@@ -28,5 +29,6 @@ makeRequest.requestUse = requestUse;
 
 makeRequest.startMockingRequests = startMockingRequests;
 makeRequest.stopMockingRequests = stopMockingRequests;
+makeRequest.reset = reset;
 
 export default makeRequest;

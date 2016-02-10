@@ -1,10 +1,48 @@
-import makeRequest, { setBackend } from './request';
+import makeRequest, { setBackend, reset, startMockingRequests, stopMockingRequests } from './request';
 import rxws from './rxws';
 
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
 /* istanbul ignore next */
 describe('request', () => {
+	beforeEach(function() {
+		reset();
+	});
+
+	describe('request middleware', () => {
+		beforeEach(function() {
+			startMockingRequests();
+		});
+
+		afterEach(function() {
+			stopMockingRequests();
+		});
+
+		it('should immediately respond', () => {
+
+			let transformers = {
+				response: ({req, send, reply, next}) => {
+					reply({
+						body: {
+							data: 'doggy'
+						},
+						header: {
+							...req.header
+						}
+					});
+				}
+			}
+
+			spyOn(transformers, 'response').and.callThrough();
+
+			rxws.requestUse().subscribe(transformers.response);
+
+			rxws.get('somedata').subscribe((resp) => {
+				expect(resp.data).toBe('dooggy');
+			});
+		});
+
+	});
 
 	describe('setup', () => {
 		it('should define a backend', () => {
@@ -559,38 +597,5 @@ describe('request', () => {
 
 			expect(JSON.stringify(request1)).toBe(JSON.stringify(request2));
 		})
-	});
-
-	fdescribe('request middleware', () => {
-
-		it('should immediately respond', () => {
-			let backend = makeMockBackend();
-
-			let transformers = {
-				response: ({req, send, reply, next}) => {
-					reply({
-						body: {
-							data: 'doggy'
-						},
-						header: {
-							...req.header
-						}
-					});
-				}
-			}
-
-			spyOn(transformers, 'response').and.callThrough();
-
-			setBackend({
-				backend: backend,
-				url: 'someUrl'
-			});
-
-			rxws.requestUse().subscribe(transformers.response);
-			rxws.get('somedata').subscribe((resp) => {
-				expect(resp.data).toBe('dooggy');
-			});
-		});
-
 	});
 });

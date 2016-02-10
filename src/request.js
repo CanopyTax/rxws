@@ -1,5 +1,5 @@
 import { Observable } from 'rx';
-import { getRetryTimer, generateRequestObject } from './utils';
+import { defaultMiddleware, getRetryTimer, generateRequestObject } from './utils';
 
 let backend;
 let isConnected = false;
@@ -10,23 +10,11 @@ let notificationMap = {};
 let defaultHeaders = {};
 
 let useMiddlewareQueue = [
-	{
-		observer: {
-			onNext: ({res, reply}) => {
-				reply(res);
-			}
-		}
-	}
+	defaultMiddleware.response
 ];
 
 let requestMiddlewareQueue = [
-	{
-		observer: {
-			onNext: ({req, send}) => {
-				send(req);
-			}
-		}
-	}
+	defaultMiddleware.request
 ];
 
 function sendRequest(request) {
@@ -223,6 +211,27 @@ export function stopMockingRequests() {
 	mockRequests = false;
 }
 
+/**
+ * Reset middleware, backend, and all internal state
+ */
+export function reset() {
+	useMiddlewareQueue = [
+		defaultMiddleware.response
+	];
+
+	requestMiddlewareQueue = [
+		defaultMiddleware.request
+	];
+
+	backend = null;
+	isConnected = false;
+	mockRequests = false;
+	requestQueue = [];
+	requestMap = {};
+	notificationMap = {};
+	defaultHeaders = {};
+}
+
 export default function makeRequest(config) {
 	if (!backend && !mockRequests) throw new Error('Must define a websocket backend');
 
@@ -244,3 +253,4 @@ export default function makeRequest(config) {
 		}
 	})
 }
+

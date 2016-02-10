@@ -56,3 +56,21 @@ export function generateRequestObject(defaultHeaders) {
 		}
 	}
 }
+
+export let defaultMiddleware = {
+	request: {
+		observer: {
+			onNext: ({req, send}) => {
+				send(req);
+			}
+		}
+	},
+
+	response: {
+		observer: {
+			onNext: ({res, reply}) => {
+				reply(res);
+			}
+		}
+	}
+}
