@@ -222,7 +222,7 @@ export function stopMockingRequests() {
 }
 
 export default function makeRequest(config) {
-	if (!backend) throw new Error('Must define a websocket backend');
+	if (!backend && !mockRequests) throw new Error('Must define a websocket backend');
 
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
