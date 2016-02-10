@@ -24,10 +24,11 @@ describe('request', () => {
 				response: ({req, send, reply, next}) => {
 					reply({
 						body: {
-							data: 'doggy'
+							data: 'dooggy'
 						},
 						header: {
-							...req.header
+							...req.header,
+							statusCode: 200
 						}
 					});
 				}
@@ -40,6 +41,8 @@ describe('request', () => {
 			rxws.get('somedata').subscribe((resp) => {
 				expect(resp.data).toBe('dooggy');
 			});
+
+			expect(transformers.response).toHaveBeenCalled();
 		});
 
 	});

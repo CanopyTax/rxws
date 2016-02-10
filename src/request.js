@@ -69,7 +69,7 @@ function executeUseMiddleware(index, useMiddlewareQueue, response, rawMessage) {
 			if (!err) {
 				executeUseMiddleware(++index, useMiddlewareQueue, response, rawMessage);
 			} else {
-				throw new Error(err);
+				throw new Error('Error here');
 			}
 		}
 	})
@@ -246,7 +246,7 @@ export default function makeRequest(config) {
 			}, timeout)
 		};
 
-		if (isConnected) {
+		if (isConnected || mockRequests) {
 			sendRequest(request);
 		} else {
 			requestQueue.push(request);
