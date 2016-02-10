@@ -3,7 +3,7 @@ import { getRetryTimer, generateRequestObject } from './utils';
 
 let backend;
 let isConnected = false;
-let mockRequests = null;
+let mockRequests = false;
 let requestQueue = [];
 let requestMap = {};
 let notificationMap = {};
@@ -44,6 +44,7 @@ function executeRequestMiddleware(index, requestMiddlewareQueue, request) {
 	middleware.observer.onNext({
 		req: request,
 		send: transmitRequest,
+		reply: replyImmediately.bind(null, request),
 		next: (err) => {
 			if (!err) {
 				executeRequestMiddleware(++index, requestMiddlewareQueue, request);
@@ -54,7 +55,12 @@ function executeRequestMiddleware(index, requestMiddlewareQueue, request) {
 	})
 }
 
+function replyImmediately(request, response) {
+	// Force the response to have the same correlationId as the request
+	response.header.correlationId = request.header.correlationId;
 
+	handleMessageWrapper(JSON.stringify(response));
+}
 
 function handleMessageWrapper(message) {
 	let response = JSON.parse(message);
@@ -204,21 +210,17 @@ export function requestUse() {
 }
 
 /**
- * If executed with a callback, no requests will actually made to the server
- * instead the callback will be executed with the request object that would
- * have been sent to the server.
- *
- * @param {Function} cb the callback that will be executed
+ * If mocking requests, don't require a backend
  */
-export function startMockingRequests(cb) {
-	mockRequests = cb;
+export function startMockingRequests() {
+	mockRequests = true;
 }
 
 /**
  * Stop mocking requests.
  */
 export function stopMockingRequests() {
-	mockRequests = null;
+	mockRequests = false;
 }
 
 export default function makeRequest(config) {
@@ -227,17 +229,6 @@ export default function makeRequest(config) {
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
 
-		if (mockRequests) {
-			// return so we don't proceed with making the actual server request
-			return mockRequests(request);
-		}
-
-		if (isConnected) {
-			sendRequest(request);
-		} else {
-			requestQueue.push(request);
-		}
-
 		let timeout = config.timeout || 10000;
 
 		requestMap[request.header.correlationId] = {
@@ -245,5 +236,11 @@ export default function makeRequest(config) {
 				observer.onError('Never received server response within timeout ' + timeout);
 			}, timeout)
 		};
+
+		if (isConnected) {
+			sendRequest(request);
+		} else {
+			requestQueue.push(request);
+		}
 	})
 }

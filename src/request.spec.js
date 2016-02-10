@@ -371,7 +371,7 @@ describe('request', () => {
 		});
 	});
 
-	describe('middleware', () => {
+	describe('response middleware', () => {
 
 		it('should execute response transformer', () => {
 			let backend = makeMockBackend();
@@ -559,5 +559,38 @@ describe('request', () => {
 
 			expect(JSON.stringify(request1)).toBe(JSON.stringify(request2));
 		})
+	});
+
+	fdescribe('request middleware', () => {
+
+		it('should immediately respond', () => {
+			let backend = makeMockBackend();
+
+			let transformers = {
+				response: ({req, send, reply, next}) => {
+					reply({
+						body: {
+							data: 'doggy'
+						},
+						header: {
+							...req.header
+						}
+					});
+				}
+			}
+
+			spyOn(transformers, 'response').and.callThrough();
+
+			setBackend({
+				backend: backend,
+				url: 'someUrl'
+			});
+
+			rxws.requestUse().subscribe(transformers.response);
+			rxws.get('somedata').subscribe((resp) => {
+				expect(resp.data).toBe('dooggy');
+			});
+		});
+
 	});
 });

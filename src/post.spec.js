@@ -120,7 +120,7 @@ describe('POST', () => {
 		})).toBe(true);
 	});
 
-	fit('should make a request with extra resources', () => {
+	it('should make a request with extra resources', () => {
 		post('users.posts.comments', {
 			name: 'test'
 		}, {
