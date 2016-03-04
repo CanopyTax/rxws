@@ -150,7 +150,7 @@ export function setBackend(_options = {}) {
 	backend = options.backend;
 	defaultHeaders = options.defaultHeaders;
 
-	backend.connect(options.url).retryWhen(function(attempts) {
+	backend.connect(options.url, null, { heartbeat: _options.heartbeat }).retryWhen(function(attempts) {
 		return Observable.range(1, 30000).zip(attempts, function(i, error) {
 			if (options.onConnectionError) {
 				options.onConnectionError.call(null, error);

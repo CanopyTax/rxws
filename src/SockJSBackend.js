@@ -3,6 +3,8 @@ import SockJS from 'sockjs-client';
 
 let sock;
 
+var hb = null;
+
 function getTestUrl(url) {
 	let parser = document.createElement('a');
 	parser.href = url;
@@ -34,11 +36,19 @@ function tryConnect(url, observer) {
 	sock.onerror = function(e) {
 		observer.onError(e)
 	}
+
+	sock.onheartbeat = function() {
+		if (typeof hb !== 'undefined' && hb !== null) {
+			sock.send(hb);
+		}
+	}
 }
 
 export default {
 
-	connect(url, forceFail) {
+	connect(url, forceFail, options) {
+		hb = options.heartbeat;
+
 		return Observable.create((observer) => {
 			tryConnect(url, observer);
 		})
