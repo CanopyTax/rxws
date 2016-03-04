@@ -54,7 +54,7 @@ describe('request', () => {
 			expect(backend.onMessage).toHaveBeenCalled();
 
 			expect(backend.connect).toHaveBeenCalled();
-			expect(backend.connect).toHaveBeenCalledWith('someUrl');
+			expect(backend.connect).toHaveBeenCalledWith('someUrl', null, { heartbeat: undefined });
 		});
 
 		it('should return an observable', () => {
@@ -89,7 +89,7 @@ describe('request', () => {
 			setBackend({backend: backend, url: 'someUrl'});
 
 			expect(backend.connect).toHaveBeenCalled();
-			expect(backend.connect).toHaveBeenCalledWith('someUrl');
+			expect(backend.connect).toHaveBeenCalledWith('someUrl', null, { heartbeat: undefined });
 			expect(subscribeSpy).toHaveBeenCalled();
 		});
 
