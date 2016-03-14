@@ -152,12 +152,12 @@ export function setBackend(_options = {}) {
 
 	backend.connect(options.url, null, { heartbeat: _options.heartbeat }).retryWhen(function(attempts) {
 		return Observable.range(1, 30000).zip(attempts, function(i, error) {
+			isConnected = false;
 			if (options.onConnectionError) {
 				options.onConnectionError.call(null, error);
 			}
 			return i;
 		}).flatMap(function(i) {
-			isConnected = false;
 			const seconds = getRetryTimer(i);
 			console.log("delay retry by " + seconds + " second(s)");
 			return Observable.timer(seconds);

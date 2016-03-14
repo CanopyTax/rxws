@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client';
 let sock;
 
 var hb = null;
+const OPEN = 1; // should correspond to hidden SockJS.OPEN constant
 
 function getTestUrl(url) {
 	let parser = document.createElement('a');
@@ -38,7 +39,7 @@ function tryConnect(url, observer) {
 	}
 
 	sock.onheartbeat = function() {
-		if (typeof hb !== 'undefined' && hb !== null) {
+		if (typeof hb !== 'undefined' && hb !== null && sock.readyState === OPEN) {
 			sock.send(hb);
 		}
 	}
