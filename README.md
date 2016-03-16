@@ -102,18 +102,36 @@ rxws.onNotification('newPost')
   })
 ```
 
-Middleware:
+Request Middleware:
+```javascript
+// Middleware progress from one another in the order they are defined
+rxws.requestUse()
+	.subscribe(({req, send, reply, next}) => {
+		req.header.resource = 'prefix.' + req.header.resource;
+		next();
+	}, ({req, err}) => {
+		//the error function is currently never called
+	});
+```
 
+Response Middleware:
 ```javascript
 // Middleware progress from one another in the order they are defined
 rxws.use()
-	.subscribe(({res, reply, retry, next}) => {
+	.subscribe(({req, res, reply, retry, next}) => {
 		res.requestTime = Date.now();
 		next();
 	});
 
 rxws.use()
-	.subscribe(({res, reply, retry, next}) => {
+	.subscribe(({req, res, reply, retry, next}) => {
+		next();
+	}, ({req, err}) => {
+		// Do something with the error and the request.
+	});
+
+rxws.use()
+	.subscribe(({req, res, reply, retry, next}) => {
 		reply(res);
 	});
 ```

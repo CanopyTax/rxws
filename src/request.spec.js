@@ -167,7 +167,9 @@ describe('request', () => {
 				expect('response should never come').toFail();
 				run();
 			}, (error) => {
-				expect(error).toBe('Never received server response within timeout 100');
+				expect(error.err).toBe('Never received server response within timeout 100');
+				expect(error.req).toBeTruthy();
+				expect(typeof error.req.header.correlationId).toBe('string');
 				run();
 			});
 
@@ -185,7 +187,9 @@ describe('request', () => {
 				expect('response should never come').toFail();
 				run();
 			}, (error) => {
-				expect(error).toBe('Never received server response within timeout 10000');
+				expect(error.err).toBe('Never received server response within timeout 10000');
+				expect(error.req).toBeTruthy();
+				expect(typeof error.req.header.correlationId).toBe('string');
 				run();
 			});
 
@@ -328,8 +332,10 @@ describe('request', () => {
 				resource: 'users'
 			}).subscribe((response) => {
 					expect('This should not be called').toBe('But it was');
-				}, (response) => {
-					expect(response.__header.statusCode).toBe(404);
+				}, ({req, err}) => {
+					expect(err.__header.statusCode).toBe(404);
+					expect(req).toBeTruthy();
+					expect(typeof req.header.correlationId).toBe('string');
 				});
 
 			let request = JSON.parse(backend.write.calls.argsFor(0));
