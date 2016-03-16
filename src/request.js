@@ -47,27 +47,31 @@ function replyImmediately(request, response) {
 	// Force the response to have the same correlationId as the request
 	response.header.correlationId = request.header.correlationId;
 
-	handleMessageWrapper(JSON.stringify(response));
+	handleMessageWrapper(JSON.stringify(response), request);
 }
 
-function handleMessageWrapper(message) {
+function handleMessageWrapper(message, request) {
 	let response = JSON.parse(message);
+	if (!request) {
+		request = response && response.header && requestMap[response.header.correlationId] ? requestMap[response.header.correlationId].request : null;
+	}
 
-	executeUseMiddleware(0, useMiddlewareQueue, response, message);
+	executeUseMiddleware(0, useMiddlewareQueue, response, message, request);
 }
 
-function executeUseMiddleware(index, useMiddlewareQueue, response, rawMessage) {
+function executeUseMiddleware(index, useMiddlewareQueue, response, rawMessage, request) {
 	let middleware = useMiddlewareQueue[index];
 	if (!middleware) throw new Error("Invalid middleware");
 
 	middleware.observer.onNext({
 		res: response,
+		req: request,
 		rawMessage: rawMessage,
 		reply: handleMessage.bind(null, rawMessage),
 		retry: retryRequest.bind(null, rawMessage),
 		next: (err) => {
 			if (!err) {
-				executeUseMiddleware(++index, useMiddlewareQueue, response, rawMessage);
+				executeUseMiddleware(++index, useMiddlewareQueue, response, rawMessage, request);
 			} else {
 				throw new Error('Error here');
 			}
@@ -100,12 +104,16 @@ function handleMessage(rawMessage, response) {
 	if (!observerObj) throw new Error('No associated request for the server message', rawMessage);
 	else {
 		let observer = observerObj.observer;
+		const req = observerObj.request;
 		response.body.__header = response.header;
 
 		clearTimeout(observerObj.timeout);
 
 		if (response.header.statusCode !== 200) {
-			observer.onError(response.body);
+			observer.onError({
+				err: response.body,
+				req,
+			});
 			observer.onCompleted(response.body);
 		} else {
 			observer.onNext(response.body);
@@ -242,7 +250,10 @@ export default function makeRequest(config) {
 
 		requestMap[request.header.correlationId] = {
 			observer, request, timeout: setTimeout(() => {
-				observer.onError('Never received server response within timeout ' + timeout);
+				observer.onError({
+					err: 'Never received server response within timeout ' + timeout,
+					req: request,
+				});
 			}, timeout)
 		};
 
