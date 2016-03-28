@@ -47,11 +47,16 @@ function tryConnect(url, observer) {
 
 export default {
 
-	connect(url, forceFail, options) {
+	connect(urlGetter, forceFail, options) {
 		hb = options.heartbeat;
 
 		return Observable.create((observer) => {
-			tryConnect(url, observer);
+
+			if (typeof urlGetter === 'string' || urlGetter instanceof String) {
+				tryConnect(urlGetter, observer);
+			} else {
+				urlGetter().subscribe(url => tryConnect(url, observer));
+			}
 		})
 	},
 

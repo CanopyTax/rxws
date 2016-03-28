@@ -14,8 +14,16 @@ function sanitizeParams(resource, params) {
 	});
 }
 
+/**
+ * Exponentially backoff connect retry according to
+ * https://www.awsarchitectureblog.com/2015/03/backoff.html
+ */
 export function getRetryTimer(i) {
-	return (Math.log(i) + (Math.random() * (i - 1))) * 1000;
+	const CAP = 15000;
+	const BASE = 400;
+
+	const temp = Math.min(CAP, BASE * 2 * (i - 1));
+	return temp / 2 + (Math.random() * temp);
 }
 
 /**
