@@ -16,6 +16,23 @@ import makeRequest, {
 	reset
 } from './request';
 
+makeRequest.remove = remove;
+makeRequest.get = get;
+makeRequest.put = put;
+makeRequest.post = post;
+makeRequest.patch = patch;
+makeRequest.head = head;
+makeRequest.setBackend = setBackend;
+
+makeRequest.onNotification = onNotification;
+makeRequest.use = use;
+makeRequest.requestUse = requestUse;
+
+makeRequest.startMockingRequests = startMockingRequests;
+makeRequest.stopMockingRequests = stopMockingRequests;
+makeRequest.reset = reset;
+makeRequest.rx = rx;
+
 export { remove };
 export { get };
 export { post };
