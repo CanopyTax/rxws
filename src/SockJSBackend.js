@@ -52,10 +52,10 @@ export default {
 
 		return Observable.create((observer) => {
 
-			if (typeof urlGetter === 'string') {
+			if (typeof urlGetter === 'string' || urlGetter instanceof String) {
 				tryConnect(urlGetter, observer);
 			} else {
-				urlGetter().subscribe((url) => tryConnect(url, observer));
+				urlGetter().subscribe(url => tryConnect(url, observer));
 			}
 		})
 	},
