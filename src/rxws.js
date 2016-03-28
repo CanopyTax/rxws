@@ -1,3 +1,4 @@
+import rx from 'rx';
 import remove from './remove';
 import get from './get';
 import post from './post';
@@ -15,20 +16,21 @@ import makeRequest, {
 	reset
 } from './request';
 
-makeRequest.remove = remove;
-makeRequest.get = get;
-makeRequest.put = put;
-makeRequest.post = post;
-makeRequest.patch = patch;
-makeRequest.head = head;
-makeRequest.setBackend = setBackend;
+export { remove };
+export { get };
+export { post };
+export { put };
+export { head };
+export { patch };
+export { setBackend };
 
-makeRequest.onNotification = onNotification;
-makeRequest.use = use;
-makeRequest.requestUse = requestUse;
+export { onNotification };
+export { use };
+export { requestUse };
 
-makeRequest.startMockingRequests = startMockingRequests;
-makeRequest.stopMockingRequests = stopMockingRequests;
-makeRequest.reset = reset;
+export { startMockingRequests };
+export { stopMockingRequests };
+export { reset };
+export { rx };
 
 export default makeRequest;
