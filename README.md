@@ -171,6 +171,7 @@ var subscription = source.subscribe(
 rxws.setBackend({
 	backend: rxwsBackendImplementation,
 	url: string,
+	url: (): Observable,
 	defaultHeaders?: object,
 	requestTransformer?: (request: object, send: Function): null,
 	responseTransformer?: (response: object, reply: Function, retry: Function): null,
