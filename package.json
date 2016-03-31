@@ -1,6 +1,6 @@
 {
   "name": "rxws",
-  "version": "4.1.2-canopy-ie11",
+  "version": "4.1.2-canopy-ie11-p2",
   "description": "A RESTful reactive JavaScript implmentation on top of web sockets",
   "main": "lib/rxws.js",
   "scripts": {
@@ -50,7 +50,7 @@
   "dependencies": {
     "rx": "3.1.2",
     "simply-uuid": "^1.0.1",
-    "sockjs-client": "1.0.3-canopy-ie11"
+    "sockjs-client": "1.0.3-canopy-ie11-p2"
   },
   "files": [
     "dist",
