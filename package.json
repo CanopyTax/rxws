@@ -1,6 +1,6 @@
 {
   "name": "rxws",
-  "version": "4.1.2",
+  "version": "4.2.0",
   "description": "A RESTful reactive JavaScript implmentation on top of web sockets",
   "main": "lib/rxws.js",
   "scripts": {
@@ -52,9 +52,9 @@
     "simply-uuid": "^1.0.1",
     "sockjs-client": "^1.0.3"
   },
-	"peerDependencies": {
+  "peerDependencies": {
     "rx": "4.1.0"
-	},
+  },
   "files": [
     "dist",
     "src",
