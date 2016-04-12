@@ -143,6 +143,41 @@ function sendRequestQueue() {
 	}
 }
 
+/**
+ * Retry all outstanding requests. This is necessary if the websocket connection
+ * has been reset. We only want to try it once though.
+ */
+function retryOutstandingRequests() {
+	Object.keys(requestMap).forEach((requestId) => {
+		let reqObj = requestMap[requestId];
+
+		if (reqObj.tries === 1) return; // We only want to retry once
+
+		clearTimeout(reqObj.timeout);
+		prepareRequest(reqObj.observer, reqObj.request, reqObj.timing, reqObj.tries + 1);
+	});
+}
+
+function prepareRequest(observer, request, timeout, tries = 0) {
+
+	requestMap[request.header.correlationId] = {
+		observer, request, tries,
+		timing: timeout,
+		timeout: setTimeout(() => {
+			observer.onError({
+				err: 'Never received server response within timeout ' + timeout,
+				req: request,
+			});
+		}, timeout)
+	};
+
+	if (isConnected || mockRequests) {
+		sendRequest(request);
+	} else {
+		requestQueue.push(request);
+	}
+}
+
 export function setBackend(_options = {}) {
 	if (useMiddlewareQueue.length > 1) {
 		useMiddlewareQueue.splice(0, useMiddlewareQueue.length - 1);
@@ -167,10 +202,11 @@ export function setBackend(_options = {}) {
 			return i;
 		}).flatMap(function(i) {
 			const seconds = getRetryTimer(i);
-			console.log("delay retry by " + seconds + " second(s)");
+			console.log("delay retry by " + (seconds / 1000) + " second(s)");
 			return Observable.timer(seconds);
 		});
 	}).subscribe((response) => {
+		retryOutstandingRequests();
 		isConnected = true;
 		sendRequestQueue();
 		backend.onMessage(handleMessageWrapper);
@@ -245,22 +281,8 @@ export default function makeRequest(config) {
 
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
-
 		let timeout = config.timeout || 10000;
 
-		requestMap[request.header.correlationId] = {
-			observer, request, timeout: setTimeout(() => {
-				observer.onError({
-					err: 'Never received server response within timeout ' + timeout,
-					req: request,
-				});
-			}, timeout)
-		};
-
-		if (isConnected || mockRequests) {
-			sendRequest(request);
-		} else {
-			requestQueue.push(request);
-		}
+		prepareRequest(observer, request, timeout);
 	})
 }

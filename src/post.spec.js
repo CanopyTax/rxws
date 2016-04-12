@@ -1,5 +1,5 @@
 import post from './post';
-import { setBackend } from './request';
+import { setBackend, reset } from './request';
 import { makeMockBackend, messagesAreEqual } from './test-utils';
 
 /* istanbul ignore next */
@@ -9,6 +9,10 @@ describe('POST', () => {
 	beforeEach(() => {
 		backend = makeMockBackend();
 		setBackend({backend: backend, url: 'someUrl'});
+	});
+
+	afterEach(() => {
+		reset();
 	});
 
 	it('should make a request', () => {
