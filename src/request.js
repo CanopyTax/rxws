@@ -201,8 +201,8 @@ export function setBackend(_options = {}) {
 			}
 			return i;
 		}).flatMap(function(i) {
-			const seconds = getRetryTimer(i);
-			console.log("delay retry by " + (seconds / 1000) + " second(s)");
+			const ms = getRetryTimer(i);
+			console.log("delay retry by " + (ms / 1000) + " second(s)");
 			return Observable.timer(seconds);
 		});
 	}).subscribe((response) => {
