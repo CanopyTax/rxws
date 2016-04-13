@@ -4,12 +4,15 @@ import { isEqual, cloneDeep } from 'lodash';
 /* istanbul ignore next */
 export function makeMockBackend() {
 	let callback;
+	let _makeConnectionError;
 
 	let backend = {
 		connect(url) {
 			return Observable.create((observer) => {
 				observer.onNext();
-				observer.onCompleted();
+				_makeConnectionError = function() {
+					observer.onError('Lost connection');
+				}
 			})
 		},
 
@@ -32,6 +35,7 @@ export function makeMockBackend() {
 	spyOn(backend, 'write');
 	spyOn(backend, 'onMessage').and.callThrough();
 	spyOn(backend, 'close');
+	backend.makeConnectionError = () => _makeConnectionError();
 
 	return backend;
 }

@@ -20,7 +20,7 @@ function sanitizeParams(resource, params) {
  */
 export function getRetryTimer(i) {
 	const CAP = 15000;
-	const BASE = 400;
+	const BASE = 300;
 
 	const temp = Math.min(CAP, BASE * 2 * (i - 1));
 	return temp / 2 + (Math.random() * temp);
