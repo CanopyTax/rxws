@@ -203,7 +203,7 @@ export function setBackend(_options = {}) {
 		}).flatMap(function(i) {
 			const ms = getRetryTimer(i);
 			console.log("delay retry by " + (ms / 1000) + " second(s)");
-			return Observable.timer(seconds);
+			return Observable.timer(ms);
 		});
 	}).subscribe((response) => {
 		retryOutstandingRequests();
