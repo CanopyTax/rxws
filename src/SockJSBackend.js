@@ -37,12 +37,6 @@ function tryConnect(url, observer) {
 	sock.onerror = function(e) {
 		observer.onError(e)
 	}
-
-	sock.onheartbeat = function() {
-		if (typeof hb !== 'undefined' && hb !== null && sock.readyState === OPEN) {
-			sock.send(hb);
-		}
-	}
 }
 
 export default {

@@ -138,8 +138,10 @@ function handleServerNotification(message) {
 }
 
 function sendRequestQueue() {
-	while (requestQueue.length) {
-		sendRequest(requestQueue.shift());
+	if (isConnected) {
+		while (requestQueue.length) {
+			sendRequest(requestQueue.shift());
+		}
 	}
 }
 
@@ -201,6 +203,7 @@ export function setBackend(_options = {}) {
 			}
 			return i;
 		}).flatMap(function(i) {
+			isConnected = false;
 			const ms = getRetryTimer(i);
 			console.log("delay retry by " + (ms / 1000) + " second(s)");
 			return Observable.timer(ms);
