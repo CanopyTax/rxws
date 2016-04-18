@@ -1,4 +1,5 @@
 import makeRequest, { setBackend, reset, startMockingRequests, stopMockingRequests } from './request';
+import remove from './remove';
 import rxws from './rxws';
 
 import { makeMockBackend, messagesAreEqual } from './test-utils';
@@ -54,7 +55,7 @@ describe('request', () => {
 			expect(backend.onMessage).toHaveBeenCalled();
 
 			expect(backend.connect).toHaveBeenCalled();
-			expect(backend.connect).toHaveBeenCalledWith('someUrl', null, { heartbeat: undefined });
+			expect(typeof backend.connect.calls.argsFor(0)[0]).toBe('object');
 		});
 
 		it('should return an observable', () => {
@@ -73,14 +74,8 @@ describe('request', () => {
 		it('should make call to connect to the socket server', () => {
 			let subscribeSpy = jasmine.createSpy('subscribe');
 			let backend = {
-				connect: () => {
-					return {
-						retryWhen: function() {
-							return {
-								subscribe: subscribeSpy
-							}
-						}
-					}
+				connect: (url, onSuccess, onError) => {
+					subscribeSpy();
 				}
 			}
 
@@ -89,7 +84,7 @@ describe('request', () => {
 			setBackend({backend: backend, url: 'someUrl'});
 
 			expect(backend.connect).toHaveBeenCalled();
-			expect(backend.connect).toHaveBeenCalledWith('someUrl', null, { heartbeat: undefined });
+			expect(backend.connect.calls.argsFor(0)[0].url).toBe('someUrl');
 			expect(subscribeSpy).toHaveBeenCalled();
 		});
 
@@ -606,5 +601,68 @@ describe('request', () => {
 
 			expect(JSON.stringify(request1)).toBe(JSON.stringify(request2));
 		})
+	});
+
+	describe('Connection errors and retries', () => {
+		let backend;
+
+		beforeEach(() => {
+			backend = makeMockBackend();
+			setBackend({backend: backend, url: 'someUrl'});
+		});
+
+		afterEach(() => {
+			reset();
+		});
+
+		it('should execute onConnectionError callback', (run) => {
+			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
+				expect(error).toBe('Lost connection');
+				run();
+			}});
+
+			backend.makeConnectionError();
+		});
+
+		it('should retry outstanding requests when the connection resets', (run) => {
+			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
+				expect(error).toBe('Lost connection');
+				setTimeout(() => {
+					expect(backend.write.calls.count()).toBe(2);
+					expect(messagesAreEqual(
+						backend.write.calls.argsFor(0),
+						backend.write.calls.argsFor(1),
+						true
+					)).toBeTruthy();
+					run();
+				}, 10);
+			}});
+
+			remove('wow').subscribe(() => {});
+
+			expect(backend.write.calls.count()).toBe(1);
+
+			backend.makeConnectionError();
+		});
+
+		it('should retry outstanding requests only once', (run) => {
+			let tries = 0;
+			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
+				tries++;
+
+				setTimeout(() => {
+					if (tries === 1) {
+						expect(backend.write.calls.count()).toBe(2);
+						backend.makeConnectionError();
+					} else {
+						expect(backend.write.calls.count()).toBe(2);
+						run();
+					}
+				}, tries === 1 ? 10 : 200);
+			}});
+
+			remove('wow').subscribe(() => {});
+			backend.makeConnectionError();
+		});
 	});
 });
