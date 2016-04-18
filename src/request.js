@@ -8,6 +8,7 @@ let requestQueue = [];
 let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
+let connectionTries = 0;
 
 let useMiddlewareQueue = [
 	defaultMiddleware.response
@@ -73,7 +74,7 @@ function executeUseMiddleware(index, useMiddlewareQueue, response, rawMessage, r
 			if (!err) {
 				executeUseMiddleware(++index, useMiddlewareQueue, response, rawMessage, request);
 			} else {
-				throw new Error('Error here');
+				throw new Error(err);
 			}
 		}
 	})
@@ -138,10 +139,12 @@ function handleServerNotification(message) {
 }
 
 function sendRequestQueue() {
-	if (isConnected) {
-		while (requestQueue.length) {
-			sendRequest(requestQueue.shift());
-		}
+	while (requestQueue.length) {
+		// setTimeout(() => {
+			if (isConnected) {
+				sendRequest(requestQueue.shift());
+			}
+		// });
 	}
 }
 
@@ -180,6 +183,14 @@ function prepareRequest(observer, request, timeout, tries = 0) {
 	}
 }
 
+function connect(options, onSuccess, onError) {
+	backend.connect({
+		url: options.url,
+		forceFail: null,
+		onSuccess, onError
+	})
+}
+
 export function setBackend(_options = {}) {
 	if (useMiddlewareQueue.length > 1) {
 		useMiddlewareQueue.splice(0, useMiddlewareQueue.length - 1);
@@ -195,25 +206,28 @@ export function setBackend(_options = {}) {
 	backend = options.backend;
 	defaultHeaders = options.defaultHeaders;
 
-	backend.connect(options.url, null, { heartbeat: _options.heartbeat }).retryWhen(function(attempts) {
-		return Observable.range(1, 30000).zip(attempts, function(i, error) {
-			isConnected = false;
-			if (options.onConnectionError) {
-				options.onConnectionError.call(null, error);
-			}
-			return i;
-		}).flatMap(function(i) {
-			isConnected = false;
-			const ms = getRetryTimer(i);
-			console.log("delay retry by " + (ms / 1000) + " second(s)");
-			return Observable.timer(ms);
-		});
-	}).subscribe((response) => {
+	connect(options, onSuccess, onError);
+
+	function onSuccess() {
 		retryOutstandingRequests();
 		isConnected = true;
+		connectionTries = 0;
 		sendRequestQueue();
 		backend.onMessage(handleMessageWrapper);
-	});
+	}
+
+	function onError(error) {
+		isConnected = false;
+		if (options.onConnectionError) {
+			options.onConnectionError.call(null, error);
+		}
+
+		connectionTries++;
+
+		const ms = getRetryTimer(connectionTries);
+		console.log("delay retry by " + (ms / 1000) + " second(s)");
+		setTimeout(connect.bind(null, options, onSuccess, onError), ms);
+	}
 }
 
 export function onNotification(type) {
@@ -271,6 +285,7 @@ export function reset() {
 	];
 
 	backend = null;
+	connectionTries = 0;
 	isConnected = false;
 	mockRequests = false;
 	requestQueue = [];

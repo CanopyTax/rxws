@@ -1,4 +1,3 @@
-import { Observable } from 'rx';
 import { isEqual, cloneDeep } from 'lodash';
 
 /* istanbul ignore next */
@@ -7,13 +6,9 @@ export function makeMockBackend() {
 	let _makeConnectionError;
 
 	let backend = {
-		connect(url) {
-			return Observable.create((observer) => {
-				observer.onNext();
-				_makeConnectionError = function() {
-					observer.onError('Lost connection');
-				}
-			})
+		connect({url, onSuccess, onError}) {
+			onSuccess();
+			_makeConnectionError = () => { onError('Lost connection') };
 		},
 
 		write(request) {

@@ -3,7 +3,6 @@ import SockJS from 'sockjs-client';
 
 let sock;
 
-var hb = null;
 const OPEN = 1; // should correspond to hidden SockJS.OPEN constant
 
 function getTestUrl(url) {
@@ -12,11 +11,11 @@ function getTestUrl(url) {
 	return parser.protocol + '//' + parser.host + parser.pathname + '/info' + parser.search;
 }
 
-function tryConnect(url, observer) {
+function tryConnect(url, success, error) {
 	sock = new SockJS(url);
 
 	sock.onopen = function() {
-		observer.onNext();
+		success();
 	}
 
 	sock.onclose = function() {
@@ -25,33 +24,42 @@ function tryConnect(url, observer) {
 			credentials: 'include'
 		}).then((response) => {
 			if (response.status === 401) {
-				observer.onError('Unauthorized');
+				error('Unauthorized');
 			} else {
-				observer.onError('Lost connection');
+				error('Lost connection');
 			}
 		}).catch(() => {
-			observer.onError('Lost connection');
+			error('Lost connection');
 		});
 	}
 
 	sock.onerror = function(e) {
-		observer.onError(e)
+		error(e);
 	}
+
+	window.__rxwstriggerError = error;
 }
 
 export default {
 
-	connect(urlGetter, forceFail, options) {
-		hb = options.heartbeat;
+	connect(options = {}) {
 
-		return Observable.create((observer) => {
+		const { url, forceFail, onSuccess, onError } = options;
+		let closing = false;
 
-			if (typeof urlGetter === 'string' || urlGetter instanceof String) {
-				tryConnect(urlGetter, observer);
-			} else {
-				urlGetter().subscribe(url => tryConnect(url, observer));
+		if (typeof url === 'string' || url instanceof String) {
+			tryConnect(url, onSuccess, handleError);
+		} else {
+			url().subscribe(u => tryConnect(u, onSuccess, handleError));
+		}
+
+		function handleError(error) {
+			if (!closing) {
+				onError(error);
+				closing = true;
+				sock.close();
 			}
-		})
+		}
 	},
 
 	write(request) {

@@ -9,7 +9,7 @@
     "clean": "rm -rf lib",
     "test-watch": "node node_modules/jasmine-node/bin/jasmine-node --autoTest lib",
     "watch": "node node_modules/babel/bin/babel.js src --out-dir lib --watch",
-    "copy": "cp -r lib ~/dev/sme-frontend/jspm_packages/npm/rxws@4.2.0/",
+    "copy": "cp -r lib ~/dev/sme-frontend/jspm_packages/npm/rxws@4.3.1/",
     "coverage": "babel-node node_modules/isparta/bin/isparta cover --report text --report html node_modules/jasmine/bin/jasmine.js"
   },
   "repository": {
