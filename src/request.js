@@ -1,5 +1,10 @@
 import { Observable } from 'rx';
-import { defaultMiddleware, getRetryTimer, generateRequestObject } from './utils';
+import {
+	log,
+	defaultMiddleware,
+	getRetryTimer,
+	generateRequestObject
+} from './utils';
 
 let backend;
 let isConnected = false;
@@ -52,6 +57,8 @@ function replyImmediately(request, response) {
 }
 
 function handleMessageWrapper(message, request) {
+	log(5, "Core received message");
+
 	let response = JSON.parse(message);
 	if (!request) {
 		request = response && response.header && requestMap[response.header.correlationId] ? requestMap[response.header.correlationId].request : null;
@@ -153,6 +160,12 @@ function sendRequestQueue() {
  * has been reset. We only want to try it once though.
  */
 function retryOutstandingRequests() {
+
+	log(3, "Core retrying outstanding requests, amount: " + Object.keys(requestMap).length);
+
+	// Requests will be re-enqueued below, this prevents them being added twice
+	requestQueue.length = 0;
+
 	Object.keys(requestMap).forEach((requestId) => {
 		let reqObj = requestMap[requestId];
 
@@ -165,10 +178,14 @@ function retryOutstandingRequests() {
 
 function prepareRequest(observer, request, timeout, tries = 0) {
 
+	log(5, "Core preparing request");
+
 	requestMap[request.header.correlationId] = {
 		observer, request, tries,
 		timing: timeout,
 		timeout: setTimeout(() => {
+			log(1, "Core never received server response within timeout");
+
 			observer.onError({
 				err: 'Never received server response within timeout ' + timeout,
 				req: request,
@@ -184,10 +201,12 @@ function prepareRequest(observer, request, timeout, tries = 0) {
 }
 
 function connect(options, onSuccess, onError) {
+	log(3, "Core connect attempt");
+
 	backend.connect({
 		url: options.url,
 		forceFail: null,
-		onSuccess, onError
+		onSuccess, onError, log
 	})
 }
 
@@ -209,6 +228,7 @@ export function setBackend(_options = {}) {
 	connect(options, onSuccess, onError);
 
 	function onSuccess() {
+		log(3, "Core connect success");
 		retryOutstandingRequests();
 		isConnected = true;
 		connectionTries = 0;
@@ -217,20 +237,24 @@ export function setBackend(_options = {}) {
 	}
 
 	function onError(error) {
+		log(3, "Core connect error");
 		isConnected = false;
 		if (options.onConnectionError) {
 			options.onConnectionError.call(null, error);
 		}
 
 		connectionTries++;
+		log(3, "Core amount of retries " + connectionTries);
 
 		const ms = getRetryTimer(connectionTries);
-		console.log("delay retry by " + (ms / 1000) + " second(s)");
+		log(2, "Core delay retry by " + (ms / 1000) + " second(s)");
 		setTimeout(connect.bind(null, options, onSuccess, onError), ms);
 	}
 }
 
 export function onNotification(type) {
+	log(5, "Core recieved notification: " + type);
+
 	if (notificationMap[type]) return notificationMap[type].observable;
 
 	notificationMap[type] = {

@@ -11,14 +11,17 @@ function getTestUrl(url) {
 	return parser.protocol + '//' + parser.host + parser.pathname + '/info' + parser.search;
 }
 
-function tryConnect(url, success, error) {
+function tryConnect(url, success, error, log) {
 	sock = new SockJS(url);
 
 	sock.onopen = function() {
+		log(3, "SockJSBackend: connection opened");
 		success();
 	}
 
 	sock.onclose = function() {
+		log(3, "SockJSBackend: connection closed");
+
 		fetch(getTestUrl(url), {
 			method: 'get',
 			credentials: 'include'
@@ -34,6 +37,7 @@ function tryConnect(url, success, error) {
 	}
 
 	sock.onerror = function(e) {
+		log(3, "SockJSBackend: sockjs error");
 		error(e);
 	}
 
@@ -44,16 +48,19 @@ export default {
 
 	connect(options = {}) {
 
-		const { url, forceFail, onSuccess, onError } = options;
+		const { url, forceFail, onSuccess, onError, log } = options;
 		let closing = false;
 
 		if (typeof url === 'string' || url instanceof String) {
-			tryConnect(url, onSuccess, handleError);
+			tryConnect(url, onSuccess, handleError, log);
 		} else {
-			url().subscribe(u => tryConnect(u, onSuccess, handleError));
+			url().subscribe(u => tryConnect(u, onSuccess, handleError, log));
 		}
 
 		function handleError(error) {
+			log(3, "SockJSBackend: Error being handled, already closing: " + closing);
+			log(3, "SockJSBackend: Error being handled, error: " + error);
+
 			if (!closing) {
 				onError(error);
 				closing = true;

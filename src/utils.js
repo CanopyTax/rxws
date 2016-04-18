@@ -1,5 +1,10 @@
 import uuid from 'simply-uuid';
 
+const debugLevel = (() => {
+	let debug = typeof localStorage === 'object' ? localStorage.getItem('rxwsDebug') : '-1';
+	return debug ? parseInt(debug, 10) : -1;
+})()
+
 function sanitizeParams(resource, params) {
 	let resourceElements = resource.split('.');
 
@@ -12,6 +17,12 @@ function sanitizeParams(resource, params) {
 			if (!params[el]) throw new Error(`Invalid params: param is required for resource ${el}`);
 		}
 	});
+}
+
+export function log(level = 5, message) {
+	if (level <= debugLevel) {
+		console.log('rxws', new Date(), message);
+	}
 }
 
 /**
