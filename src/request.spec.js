@@ -635,7 +635,7 @@ describe('request', () => {
 						true
 					)).toBeTruthy();
 					run();
-				}, 10);
+				}, 100);
 			}});
 
 			remove('wow').subscribe(() => {});
