@@ -108,6 +108,7 @@ function handleMessage(rawMessage, response) {
 	}
 
 	let observerObj = requestMap[header.correlationId];
+	delete requestMap[header.correlationId];
 
 	if (!observerObj) throw new Error('No associated request for the server message', rawMessage);
 	else {
