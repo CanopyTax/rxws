@@ -1,5 +1,11 @@
 import uuid from 'simply-uuid';
 
+let __rxwsLogs = [];
+
+if (typeof window === 'object') {
+	window.__rxwsLogs = __rxwsLogs;
+}
+
 const debugLevel = (() => {
 	let debug = typeof localStorage === 'object' ? localStorage.getItem('rxwsDebug') : '-1';
 	return debug ? parseInt(debug, 10) : -1;
@@ -21,6 +27,10 @@ function sanitizeParams(resource, params) {
 
 export function log(level = 5, message) {
 	if (level <= debugLevel) {
+		__rxwsLogs.push({
+			time: (new Date()).toString(), message
+		});
+
 		console.log('rxws', new Date(), message);
 	}
 }

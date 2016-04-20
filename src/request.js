@@ -28,6 +28,8 @@ function sendRequest(request) {
 }
 
 function transmitRequest(request) {
+	log(5, 'Core writing to backend', request);
+
 	backend.write(JSON.stringify(request));
 }
 
@@ -147,6 +149,8 @@ function handleServerNotification(message) {
 }
 
 function sendRequestQueue() {
+	log(3, "Core sending request queue, length: " + requestQueue.length);
+
 	while (requestQueue.length) {
 		// setTimeout(() => {
 			if (isConnected) {
