@@ -3,14 +3,8 @@ import { isEqual, cloneDeep } from 'lodash';
 /* istanbul ignore next */
 export function makeMockBackend() {
 	let callback;
-	let _makeConnectionError;
 
 	let backend = {
-		connect({url, onSuccess, onError}) {
-			onSuccess();
-			_makeConnectionError = () => { onError('Lost connection') };
-		},
-
 		write(request) {
 		},
 
@@ -26,13 +20,20 @@ export function makeMockBackend() {
 		}
 	}
 
-	spyOn(backend, 'connect').and.callThrough();
 	spyOn(backend, 'write');
 	spyOn(backend, 'onMessage').and.callThrough();
 	spyOn(backend, 'close');
-	backend.makeConnectionError = () => _makeConnectionError();
 
-	return backend;
+	return function(options) {
+		return {
+			subscribe: (next, onError) => {
+				next({
+					...backend,
+					mockServerError: onError
+				});
+			}
+		}
+	};
 }
 
 /* istanbul ignore next */

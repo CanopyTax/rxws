@@ -48,20 +48,24 @@ describe('request', () => {
 
 	});
 
-	describe('setup', () => {
+	fdescribe('setup', () => {
 		it('should define a backend', () => {
-			let backend = makeMockBackend();
-			setBackend({backend: backend, url: 'someUrl'});
-			expect(backend.onMessage).toHaveBeenCalled();
+			let objs = { backend: makeMockBackend() };
+			spyOn(objs, 'backend').and.callThrough();
 
-			expect(backend.connect).toHaveBeenCalled();
-			expect(typeof backend.connect.calls.argsFor(0)[0]).toBe('object');
+			setBackend({backend: objs.backend, url: 'someUrl'});
+
+			objs.backend().subscribe((backend) => {
+				expect(backend.onMessage).toHaveBeenCalled();
+			});
+
+			expect(objs.backend).toHaveBeenCalled();
+			expect(typeof objs.backend.calls.argsFor(0)[0]).toBe('object');
 		});
 
 		it('should return an observable', () => {
 			let backend = makeMockBackend();
 			setBackend({backend: backend, url: 'someUrl'});
-			expect(backend.onMessage).toHaveBeenCalled();
 
 			let observable = makeRequest({resource: 'test', method: 'get'})
 			expect(observable).toBeDefined();
@@ -72,20 +76,22 @@ describe('request', () => {
 		});
 
 		it('should make call to connect to the socket server', () => {
+			let createSpy = jasmine.createSpy('subscribe');
 			let subscribeSpy = jasmine.createSpy('subscribe');
-			let backend = {
-				connect: (url, onSuccess, onError) => {
-					subscribeSpy();
+			let backend = function(options) {
+				expect(options.url).toBe('someUrl');
+				createSpy();
+				return {
+					subscribe(next) {
+						subscribeSpy();
+					}
 				}
 			}
 
-			spyOn(backend, 'connect').and.callThrough();
-
 			setBackend({backend: backend, url: 'someUrl'});
 
-			expect(backend.connect).toHaveBeenCalled();
-			expect(backend.connect.calls.argsFor(0)[0].url).toBe('someUrl');
 			expect(subscribeSpy).toHaveBeenCalled();
+			expect(createSpy).toHaveBeenCalled();
 		});
 
 		it('should attach a correlationId to requests', () => {
@@ -662,6 +668,30 @@ describe('request', () => {
 			}});
 
 			remove('wow').subscribe(() => {});
+			backend.makeConnectionError();
+		});
+
+		it('should retry outstanding requests when the connection resets', (run) => {
+
+			remove('wow').subscribe(() => {});
+
+			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
+				expect(error).toBe('Lost connection');
+				setTimeout(() => {
+					expect(backend.write.calls.count()).toBe(2);
+					expect(messagesAreEqual(
+						backend.write.calls.argsFor(0),
+						backend.write.calls.argsFor(1),
+						true
+					)).toBeTruthy();
+					run();
+				}, 100);
+			}});
+
+			remove('wow').subscribe(() => {});
+
+			expect(backend.write.calls.count()).toBe(1);
+
 			backend.makeConnectionError();
 		});
 	});

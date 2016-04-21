@@ -6,7 +6,8 @@ import {
 	generateRequestObject
 } from './utils';
 
-let backend;
+let backend = null;
+let backendSet = false;
 let isConnected = false;
 let mockRequests = false;
 let requestQueue = [];
@@ -208,11 +209,18 @@ function prepareRequest(observer, request, timeout, tries = 0) {
 function connect(options, onSuccess, onError) {
 	log(3, "Core connect attempt");
 
-	backend.connect({
+	options.backend({
 		url: options.url,
-		forceFail: null,
-		onSuccess, onError, log
-	})
+		log: log
+	}).subscribe(
+		(_backend) => {
+			backend = _backend;
+			onSuccess();
+		},
+		(error) => {
+			onError(error);
+		}
+	);
 }
 
 export function setBackend(_options = {}) {
@@ -227,7 +235,7 @@ export function setBackend(_options = {}) {
 
 	if (!options.url) throw new Error('No backend url provided');
 
-	backend = options.backend;
+	backendSet = true;
 	defaultHeaders = options.defaultHeaders;
 
 	connect(options, onSuccess, onError);
@@ -324,7 +332,7 @@ export function reset() {
 }
 
 export default function makeRequest(config) {
-	if (!backend && !mockRequests) throw new Error('Must define a websocket backend');
+	if (!backendSet && !mockRequests) throw new Error('Must define a websocket backend');
 
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
