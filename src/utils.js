@@ -1,6 +1,7 @@
 import uuid from 'simply-uuid';
 
 let __rxwsLogs = [];
+const MAX_LOG_LENGTH = 30;
 
 if (typeof window === 'object') {
 	window.__rxwsLogs = __rxwsLogs;
@@ -26,11 +27,15 @@ function sanitizeParams(resource, params) {
 }
 
 export function log(level = 5, message) {
-	if (level <= debugLevel) {
-		__rxwsLogs.push({
-			time: (new Date()).toString(), message
-		});
+	__rxwsLogs.unshift({
+		time: (new Date()).toString(), message
+	});
 
+	if (__rxwsLogs.length > MAX_LOG_LENGTH) {
+		__rxwsLogs.length = MAX_LOG_LENGTH;
+	}
+
+	if (level <= debugLevel) {
 		console.log('rxws', new Date(), message);
 	}
 }
