@@ -6,7 +6,8 @@ import {
 	generateRequestObject
 } from './utils';
 
-let backend;
+let backend = null;
+let backendSet = false;
 let isConnected = false;
 let mockRequests = false;
 let requestQueue = [];
@@ -14,6 +15,7 @@ let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
 let connectionTries = 0;
+let connectionTimeout;
 
 let useMiddlewareQueue = [
 	defaultMiddleware.response
@@ -208,11 +210,18 @@ function prepareRequest(observer, request, timeout, tries = 0) {
 function connect(options, onSuccess, onError) {
 	log(3, "Core connect attempt");
 
-	backend.connect({
+	options.backend({
 		url: options.url,
-		forceFail: null,
-		onSuccess, onError, log
-	})
+		log: log
+	}).subscribe(
+		(_backend) => {
+			backend = _backend;
+			onSuccess();
+		},
+		(error) => {
+			onError(error);
+		}
+	);
 }
 
 export function setBackend(_options = {}) {
@@ -227,7 +236,7 @@ export function setBackend(_options = {}) {
 
 	if (!options.url) throw new Error('No backend url provided');
 
-	backend = options.backend;
+	backendSet = true;
 	defaultHeaders = options.defaultHeaders;
 
 	connect(options, onSuccess, onError);
@@ -243,6 +252,7 @@ export function setBackend(_options = {}) {
 
 	function onError(error) {
 		log(3, "Core connect error");
+
 		isConnected = false;
 		if (options.onConnectionError) {
 			options.onConnectionError.call(null, error);
@@ -253,7 +263,9 @@ export function setBackend(_options = {}) {
 
 		const ms = getRetryTimer(connectionTries);
 		log(2, "Core delay retry by " + (ms / 1000) + " second(s)");
-		setTimeout(connect.bind(null, options, onSuccess, onError), ms);
+
+		if (connectionTimeout) clearTimeout(connectionTimeout);
+		connectionTimeout = setTimeout(connect.bind(null, options, onSuccess, onError), ms);
 	}
 }
 
@@ -314,17 +326,34 @@ export function reset() {
 	];
 
 	backend = null;
-	connectionTries = 0;
+	backendSet = false;
 	isConnected = false;
 	mockRequests = false;
 	requestQueue = [];
 	requestMap = {};
 	notificationMap = {};
 	defaultHeaders = {};
+	connectionTries = 0;
+	clearTimeout(connectionTimeout);
+
+	Object.keys(requestMap).forEach((key) => {
+		clearTimeout(requestMap[key].timeout);
+	});
+
+// let backend = null;
+// let backendSet = false;
+// let isConnected = false;
+// let mockRequests = false;
+// let requestQueue = [];
+// let requestMap = {};
+// let notificationMap = {};
+// let defaultHeaders = {};
+// let connectionTries = 0;
+// let connectionTimeout;
 }
 
 export default function makeRequest(config) {
-	if (!backend && !mockRequests) throw new Error('Must define a websocket backend');
+	if (!backendSet && !mockRequests) throw new Error('Must define a websocket backend');
 
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
