@@ -48,7 +48,7 @@ describe('request', () => {
 
 	});
 
-	fdescribe('setup', () => {
+	describe('setup', () => {
 		it('should define a backend', () => {
 			let objs = { backend: makeMockBackend() };
 			spyOn(objs, 'backend').and.callThrough();
@@ -627,7 +627,7 @@ describe('request', () => {
 				run();
 			}});
 
-			backend.makeConnectionError();
+			backend.makeConnectionError('Lost connection');
 		});
 
 		it('should retry outstanding requests when the connection resets', (run) => {
@@ -648,7 +648,7 @@ describe('request', () => {
 
 			expect(backend.write.calls.count()).toBe(1);
 
-			backend.makeConnectionError();
+			backend.makeConnectionError('Lost connection');
 		});
 
 		it('should retry outstanding requests only once', (run) => {
@@ -668,12 +668,10 @@ describe('request', () => {
 			}});
 
 			remove('wow').subscribe(() => {});
-			backend.makeConnectionError();
+			backend.makeConnectionError('Lost connection');
 		});
 
 		it('should retry outstanding requests when the connection resets', (run) => {
-
-			remove('wow').subscribe(() => {});
 
 			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
 				expect(error).toBe('Lost connection');
@@ -692,7 +690,29 @@ describe('request', () => {
 
 			expect(backend.write.calls.count()).toBe(1);
 
-			backend.makeConnectionError();
+			backend.makeConnectionError('Lost connection');
 		});
+
+		// it('should ', (run) => {
+    //
+		// 	setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
+		// 		expect(error).toBe('Lost connection');
+		// 		setTimeout(() => {
+		// 			expect(backend.write.calls.count()).toBe(2);
+		// 			expect(messagesAreEqual(
+		// 				backend.write.calls.argsFor(0),
+		// 				backend.write.calls.argsFor(1),
+		// 				true
+		// 			)).toBeTruthy();
+		// 			run();
+		// 		}, 100);
+		// 	}});
+    //
+		// 	remove('wow').subscribe(() => {});
+    //
+		// 	expect(backend.write.calls.count()).toBe(1);
+    //
+		// 	backend.makeConnectionError('Lost connection');
+		// });
 	});
 });

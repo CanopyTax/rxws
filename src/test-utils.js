@@ -3,6 +3,7 @@ import { isEqual, cloneDeep } from 'lodash';
 /* istanbul ignore next */
 export function makeMockBackend() {
 	let callback;
+	let error;
 
 	let backend = {
 		write(request) {
@@ -17,6 +18,10 @@ export function makeMockBackend() {
 
 		mockServerMessage(message) {
 			callback(message);
+		},
+
+		makeConnectionError(...args) {
+			error(...args);
 		}
 	}
 
@@ -24,16 +29,24 @@ export function makeMockBackend() {
 	spyOn(backend, 'onMessage').and.callThrough();
 	spyOn(backend, 'close');
 
-	return function(options) {
+	function backendConstructor(options) {
 		return {
 			subscribe: (next, onError) => {
+				error = onError;
 				next({
-					...backend,
-					mockServerError: onError
+					...backend
 				});
 			}
 		}
-	};
+	}
+
+	backendConstructor.write = backend.write;
+	backendConstructor.onMessage = backend.onMessage;
+	backendConstructor.close = backend.close;
+	backendConstructor.mockServerMessage = backend.mockServerMessage;
+	backendConstructor.makeConnectionError = backend.makeConnectionError;
+
+	return backendConstructor;
 }
 
 /* istanbul ignore next */
