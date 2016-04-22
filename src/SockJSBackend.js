@@ -4,7 +4,7 @@ import { Observable } from 'rx';
 function getTestUrl(url) {
 	let parser = document.createElement('a');
 	parser.href = url;
-	return parser.protocol + '//' + parser.host + parser.pathname + '/includefo' + parser.search;
+	return parser.protocol + '//' + parser.host + parser.pathname + '/info' + parser.search;
 }
 
 function createSocket(url, callback) {
@@ -76,12 +76,10 @@ export default function(options) {
 	const { url, forceFail, onSuccess, onError, log } = options;
 
 	return Observable.create((observer) => {
-
 		if (typeof url === 'string' || url instanceof String) {
 			createSocket(url, loadSocket.bind(null, url, observer, log));
 		} else {
-			url().subscribe(u => createSocket(u, loadSocket.bind(null, url, observer, log)));
+			url().subscribe(u => createSocket(u, loadSocket.bind(null, u, observer, log)));
 		}
-
 	})
 }
