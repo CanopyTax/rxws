@@ -15,6 +15,7 @@ let requestMap = {};
 let notificationMap = {};
 let defaultHeaders = {};
 let connectionTries = 0;
+let connectionTimeout;
 
 let useMiddlewareQueue = [
 	defaultMiddleware.response
@@ -251,6 +252,7 @@ export function setBackend(_options = {}) {
 
 	function onError(error) {
 		log(3, "Core connect error");
+
 		isConnected = false;
 		if (options.onConnectionError) {
 			options.onConnectionError.call(null, error);
@@ -261,7 +263,9 @@ export function setBackend(_options = {}) {
 
 		const ms = getRetryTimer(connectionTries);
 		log(2, "Core delay retry by " + (ms / 1000) + " second(s)");
-		setTimeout(connect.bind(null, options, onSuccess, onError), ms);
+
+		if (connectionTimeout) clearTimeout(connectionTimeout);
+		connectionTimeout = setTimeout(connect.bind(null, options, onSuccess, onError), ms);
 	}
 }
 
@@ -322,13 +326,30 @@ export function reset() {
 	];
 
 	backend = null;
-	connectionTries = 0;
+	backendSet = false;
 	isConnected = false;
 	mockRequests = false;
 	requestQueue = [];
 	requestMap = {};
 	notificationMap = {};
 	defaultHeaders = {};
+	connectionTries = 0;
+	clearTimeout(connectionTimeout);
+
+	Object.keys(requestMap).forEach((key) => {
+		clearTimeout(requestMap[key].timeout);
+	});
+
+// let backend = null;
+// let backendSet = false;
+// let isConnected = false;
+// let mockRequests = false;
+// let requestQueue = [];
+// let requestMap = {};
+// let notificationMap = {};
+// let defaultHeaders = {};
+// let connectionTries = 0;
+// let connectionTimeout;
 }
 
 export default function makeRequest(config) {

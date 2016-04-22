@@ -613,6 +613,7 @@ describe('request', () => {
 		let backend;
 
 		beforeEach(() => {
+			reset();
 			backend = makeMockBackend();
 			setBackend({backend: backend, url: 'someUrl'});
 		});
@@ -624,7 +625,9 @@ describe('request', () => {
 		it('should execute onConnectionError callback', (run) => {
 			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
 				expect(error).toBe('Lost connection');
-				run();
+				setTimeout(() => {
+					run();
+				}, 100);
 			}});
 
 			backend.makeConnectionError('Lost connection');
@@ -664,55 +667,31 @@ describe('request', () => {
 						expect(backend.write.calls.count()).toBe(2);
 						run();
 					}
-				}, tries === 1 ? 10 : 200);
+				}, tries === 1 ? 100 : 200);
 			}});
 
 			remove('wow').subscribe(() => {});
 			backend.makeConnectionError('Lost connection');
 		});
 
-		it('should retry outstanding requests when the connection resets', (run) => {
+		it('should retry multiple requests', (run) => {
 
 			setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
 				expect(error).toBe('Lost connection');
 				setTimeout(() => {
-					expect(backend.write.calls.count()).toBe(2);
-					expect(messagesAreEqual(
-						backend.write.calls.argsFor(0),
-						backend.write.calls.argsFor(1),
-						true
-					)).toBeTruthy();
+					expect(backend.write.calls.count()).toBe(6);
 					run();
 				}, 100);
 			}});
 
 			remove('wow').subscribe(() => {});
+			remove('wow').subscribe(() => {});
 
-			expect(backend.write.calls.count()).toBe(1);
-
+			expect(backend.write.calls.count()).toBe(2);
 			backend.makeConnectionError('Lost connection');
-		});
 
-		// it('should ', (run) => {
-    //
-		// 	setBackend({backend: backend, url: 'someUrl', onConnectionError: (error) => {
-		// 		expect(error).toBe('Lost connection');
-		// 		setTimeout(() => {
-		// 			expect(backend.write.calls.count()).toBe(2);
-		// 			expect(messagesAreEqual(
-		// 				backend.write.calls.argsFor(0),
-		// 				backend.write.calls.argsFor(1),
-		// 				true
-		// 			)).toBeTruthy();
-		// 			run();
-		// 		}, 100);
-		// 	}});
-    //
-		// 	remove('wow').subscribe(() => {});
-    //
-		// 	expect(backend.write.calls.count()).toBe(1);
-    //
-		// 	backend.makeConnectionError('Lost connection');
-		// });
+			remove('wow').subscribe(() => {});
+			remove('wow').subscribe(() => {});
+		});
 	});
 });
