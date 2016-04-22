@@ -78,7 +78,7 @@ export default function(options) {
 	return Observable.create((observer) => {
 
 		if (typeof url === 'string' || url instanceof String) {
-			createSocket(url, loadSocket.bind(null, observer, log));
+			createSocket(url, loadSocket.bind(null, url, observer, log));
 		} else {
 			url().subscribe(u => createSocket(u, loadSocket.bind(null, url, observer, log)));
 		}
