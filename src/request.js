@@ -212,6 +212,7 @@ function connect(options, onSuccess, onError) {
 
 	options.backend({
 		url: options.url,
+		backendOptions: options.backendOptions,
 		log: log
 	}).subscribe(
 		(_backend) => {

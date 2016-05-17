@@ -7,8 +7,8 @@ function getTestUrl(url) {
 	return parser.protocol + '//' + parser.host + parser.pathname + '/info' + parser.search;
 }
 
-function createSocket(url, callback) {
-	callback(new SockJS(url));
+function createSocket(url, backendOptions, callback) {
+	callback(new SockJS(url, null, backendOptions));
 }
 
 function loadSocket(url, observer, log, sock) {
@@ -73,13 +73,13 @@ function loadSocket(url, observer, log, sock) {
 }
 
 export default function(options) {
-	const { url, forceFail, onSuccess, onError, log } = options;
+	const { url, forceFail, onSuccess, onError, log, backendOptions } = options;
 
 	return Observable.create((observer) => {
 		if (typeof url === 'string' || url instanceof String) {
-			createSocket(url, loadSocket.bind(null, url, observer, log));
+			createSocket(url, backendOptions, loadSocket.bind(null, url, observer, log));
 		} else {
-			url().subscribe(u => createSocket(u, loadSocket.bind(null, u, observer, log)));
+			url().subscribe(u => createSocket(u, backendOptions, loadSocket.bind(null, u, observer, log)));
 		}
 	})
 }
