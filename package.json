@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "simply-uuid": "^1.0.1",
-    "sockjs-client": "^1.0.3"
+    "sockjs-client": "^1.1.0"
   },
   "peerDependencies": {
     "rx": "4.1.0"
