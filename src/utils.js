@@ -79,7 +79,7 @@ export function generateRequestObject(defaultHeaders) {
 
 		return {
 			header: {
-				...defaultHeaders,
+				...(typeof defaultHeaders === 'function' ? defaultHeaders() : defaultHeaders),
 				...config,
 				correlationId
 			},

@@ -16,6 +16,19 @@ describe('utils', () => {
 			expect(request.header.eethnayn).toBe(2);
 		});
 
+		it('should generate default headers with callback', () => {
+			const defaultHeaders = () => ({ waahid: 1, eethnayn: 2 });
+
+			const request = generateRequestObject(defaultHeaders)({
+				resource: 'groups',
+				method: 'put',
+				parameters: {}
+			});
+
+			expect(request.header.waahid).toBe(1);
+			expect(request.header.eethnayn).toBe(2);
+		});
+
 		it('should throw if no request resource', () => {
 			function makeRequest() {
 				generateRequestObject({})({method: 'put'})
