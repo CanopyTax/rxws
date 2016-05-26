@@ -1,5 +1,6 @@
 import backend from './HTTPBackend';
 
+/* istanbul ignore next */
 describe('HTTP Backend', function() {
 
 	let fetch, fetchSpy;
