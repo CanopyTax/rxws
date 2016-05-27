@@ -66,7 +66,7 @@ export default function(options) {
 		const body = request.body || '';
 
 		return fetch(`${url}${path}${getQueryString(query)}`, {
-			method,
+			method: method.toUpperCase(),
 			headers,
 			body: (method === 'get' || method === 'head') ? null : JSON.stringify(body)
 		})

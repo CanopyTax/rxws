@@ -48,7 +48,7 @@ describe('HTTP Backend', function() {
 
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
-			expect(requestOptions.method).toBe('patch');
+			expect(requestOptions.method).toBe('PATCH');
 			expect(Object.keys(requestOptions.headers).length).toBe(1);
 			expect(requestOptions.body).toBe('{"formAnswers":{"married":"no","numDepenents":5}}');
 
@@ -82,7 +82,7 @@ describe('HTTP Backend', function() {
 
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
-			expect(requestOptions.method).toBe('patch');
+			expect(requestOptions.method).toBe('PATCH');
 			expect(Object.keys(requestOptions.headers).length).toBe(1);
 			expect(requestOptions.body).toBe('{"formAnswers":{"married":"no","numDepenents":5}}');
 
@@ -117,7 +117,7 @@ describe('HTTP Backend', function() {
 
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
-			expect(requestOptions.method).toBe('patch');
+			expect(requestOptions.method).toBe('PATCH');
 			expect(Object.keys(requestOptions.headers).length).toBe(1);
 			expect(requestOptions.body).toBe('{"formAnswers":{"married":"no","numDepenents":5}}');
 
@@ -152,7 +152,7 @@ describe('HTTP Backend', function() {
 
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
-			expect(requestOptions.method).toBe('patch');
+			expect(requestOptions.method).toBe('PATCH');
 			expect(Object.keys(requestOptions.headers).length).toBe(1);
 			expect(requestOptions.body).toBe('{"formAnswers":{"married":"no","numDepenents":5}}');
 
@@ -189,7 +189,7 @@ describe('HTTP Backend', function() {
 
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
-			expect(requestOptions.method).toBe('patch');
+			expect(requestOptions.method).toBe('PATCH');
 			expect(Object.keys(requestOptions.headers).length).toBe(3);
 			expect(requestOptions.headers.apiVersion).toBe('1.1.5');
 			expect(requestOptions.headers.otherHeader).toBe('here');
@@ -220,7 +220,7 @@ describe('HTTP Backend', function() {
 
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
-			expect(requestOptions.method).toBe('get');
+			expect(requestOptions.method).toBe('GET');
 			expect(requestOptions.body).toBe(null);
 
 			run();
