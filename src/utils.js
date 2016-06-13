@@ -21,7 +21,9 @@ function sanitizeParams(resource, params) {
 
 	resourceElements.forEach((el, i) => {
 		if (i !== (resourceElements.length - 1)) {
-			if (!params[el]) throw new Error(`Invalid params: param is required for resource ${el}`);
+			if (params[el] === undefined || params[el] === null) {
+				throw new Error(`Invalid params: param is required for resource ${el}`);
+			}
 		}
 	});
 }
