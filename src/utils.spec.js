@@ -53,6 +53,21 @@ describe('utils', () => {
 			expect(makeRequest).toThrowError('Invalid params: param is required for resource groups');
 		});
 
+		it ('should not throw if a param is falsy but defined', () => {
+			function makeRequest() {
+				generateRequestObject({})({
+					resource: 'groups.forms',
+					method: 'get',
+					parameters: {
+						groups: 0, // falsy, but valid
+					},
+				});
+			}
+
+			// doesn't throw
+			makeRequest();
+		});
+
 		it('should generate request object with parameters only for parent nested resources', () => {
 			const request = generateRequestObject({})({
 				resource: 'groups.forms.sections.subSections.blocks.questions',
