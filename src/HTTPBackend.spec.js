@@ -125,6 +125,76 @@ describe('HTTP Backend', function() {
 		});
 	});
 
+	it('should setup falsy request parameters', function(run) {
+		backend({
+			backendOptions: {fetch},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "patch.accounts.years.formAnswers",
+					"parameters": {"accounts": 333, "years": 0},
+					"queryParameters": {"include": "history"}
+				},
+				"body": {
+					"formAnswers": {
+						"married": "no",
+						"numDepenents": 5
+					}
+				}
+			}));
+
+			expect(fetchSpy).toHaveBeenCalled();
+			expect(fetchSpy.calls.argsFor(0)[0]).toBe(
+				'https://api-canopytax.com/accounts/333/years/0/formAnswers?include=history'
+			);
+
+			const requestOptions = fetchSpy.calls.argsFor(0)[1];
+
+			expect(requestOptions.method).toBe('PATCH');
+			expect(Object.keys(requestOptions.headers).length).toBe(1);
+			expect(requestOptions.body).toBe('{"formAnswers":{"married":"no","numDepenents":5}}');
+
+			run();
+		});
+	});
+
+	it('should setup falsy request query parameters', function(run) {
+		backend({
+			backendOptions: {fetch},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "patch.accounts.years.formAnswers",
+					"parameters": {"accounts": 333, "years": 5},
+					"queryParameters": {"include": 0}
+				},
+				"body": {
+					"formAnswers": {
+						"married": "no",
+						"numDepenents": 5
+					}
+				}
+			}));
+
+			expect(fetchSpy).toHaveBeenCalled();
+			expect(fetchSpy.calls.argsFor(0)[0]).toBe(
+				'https://api-canopytax.com/accounts/333/years/5/formAnswers?include=0'
+			);
+
+			const requestOptions = fetchSpy.calls.argsFor(0)[1];
+
+			expect(requestOptions.method).toBe('PATCH');
+			expect(Object.keys(requestOptions.headers).length).toBe(1);
+			expect(requestOptions.body).toBe('{"formAnswers":{"married":"no","numDepenents":5}}');
+
+			run();
+		});
+	});
+
 	it('should setup request multiple query parameters', function(run) {
 		backend({
 			backendOptions: {fetch},

@@ -72,10 +72,10 @@ export default function(options) {
 		})
 
 		function toPath(params, path, res) {
-			if (params[res]) {
-				return `${path}/${res}/${params[res]}`
-			} else {
+			if (params[res] === undefined || params[res] === null) {
 				return `${path}/${res}`
+			} else {
+				return `${path}/${res}/${params[res]}`
 			}
 		}
 
