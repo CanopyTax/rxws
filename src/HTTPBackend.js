@@ -15,7 +15,7 @@ export default function(options) {
 
 				makeRequest(url, parsedRequest)
 					.then(resp => parseResponse(parsedRequest, resp))
-					.then(resp => messageCallback(JSON.stringify(resp)))
+					.then(resp => setTimeout(() => messageCallback(JSON.stringify(resp))))
 					.catch(err => messageCallback(JSON.stringify(unknownError(err, parsedRequest))));
 			},
 
