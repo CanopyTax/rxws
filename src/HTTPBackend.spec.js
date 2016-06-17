@@ -303,11 +303,11 @@ describe('HTTP Backend', function() {
 				fetch: function() {
 					return new Promise(function(resolve, reject) {
 						resolve({
-							json: () => Promise.resolve({
+							text: () => Promise.resolve(JSON.stringify({
 								khalifa: {
 									name: 'Abu Bakr'
 								}
-							}),
+							})),
 							status: 200
 						});
 					});
@@ -339,9 +339,9 @@ describe('HTTP Backend', function() {
 						resolve({
 							statusText: 'Some Error',
 							status: 500,
-							json: () => Promise.resolve({
+							text: () => Promise.resolve(JSON.stringify({
 								errors: { message: 'Some Error' }
-							}),
+							})),
 						});
 					});
 				}
@@ -372,9 +372,9 @@ describe('HTTP Backend', function() {
 						resolve({
 							statusText: 'Some Error',
 							status: 400,
-							json: () => Promise.resolve({
+							text: () => Promise.resolve(JSON.stringify({
 								errors: { message: 'Some Error' }
-							}),
+							})),
 						});
 					});
 				}

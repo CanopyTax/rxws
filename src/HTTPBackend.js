@@ -35,25 +35,24 @@ export default function(options) {
 			delete headers.parameters;
 			delete headers.queryParameters;
 
-			response.json().then(json => {
-				resolve({
-					header: { ...headers, statusCode: response.status },
-					body: json
-				});
-			}).catch((err) => {
-				response.text()
-					.then(text => {
-						resolve({
-							header: { ...headers, statusCode: response.status },
-							body: {
-								errors: {
-									message: text
-								}
+			response.text().then(text => {
+				try {
+					const json = JSON.parse(text);
+					resolve({
+						header: { ...headers, statusCode: response.status },
+						body: json
+					});
+				} catch (err) {
+					resolve({
+						header: { ...headers, statusCode: response.status },
+						body: {
+							errors: {
+								message: text
 							}
-						})
+						}
 					})
-					.catch(reject);
-			});
+				}
+			}).catch(reject);
 		});
 	}
 
