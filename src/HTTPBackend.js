@@ -16,7 +16,7 @@ export default function(options) {
 				makeRequest(url, parsedRequest)
 					.then((resp) => parseResponse(parsedRequest, resp))
 					.then((resp) => messageCallback(JSON.stringify(resp)))
-					.catch((err) => { throw err });
+					.catch((err) => { observer.onError(new Error(err)) });
 			},
 
 			onMessage(callback) {
@@ -30,19 +30,30 @@ export default function(options) {
 
 	function parseResponse(request, response) {
 		return new Promise(function(resolve, reject) {
-			response.json().then((json) => {
+			let headers = { ...request.header };
+			delete headers.resource;
+			delete headers.parameters;
+			delete headers.queryParameters;
 
-				let headers = { ...request.header };
-
-				delete headers.resource;
-				delete headers.parameters;
-				delete headers.queryParameters;
-
+			response.json().then(json => {
 				resolve({
 					header: { ...headers, statusCode: response.status },
 					body: json
 				});
-			}).catch((err) => { throw err });
+			}).catch((err) => {
+				response.text()
+					.then(text => {
+						resolve({
+							header: { ...headers, statusCode: response.status },
+							body: {
+								errors: {
+									message: text
+								}
+							}
+						})
+					})
+					.catch(reject);
+			});
 		});
 	}
 
