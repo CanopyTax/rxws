@@ -14,9 +14,9 @@ export default function(options) {
 				const parsedRequest = JSON.parse(request);
 
 				makeRequest(url, parsedRequest)
-					.then((resp) => parseResponse(parsedRequest, resp))
-					.then((resp) => messageCallback(JSON.stringify(resp)))
-					.catch((err) => { throw err });
+					.then(resp => parseResponse(parsedRequest, resp))
+					.then(resp => messageCallback(JSON.stringify(resp)))
+					.catch(err => messageCallback(JSON.stringify(unknownError(err, parsedRequest))));
 			},
 
 			onMessage(callback) {
@@ -30,20 +30,46 @@ export default function(options) {
 
 	function parseResponse(request, response) {
 		return new Promise(function(resolve, reject) {
-			response.json().then((json) => {
+			let headers = { ...request.header };
+			delete headers.resource;
+			delete headers.parameters;
+			delete headers.queryParameters;
 
-				let headers = { ...request.header };
-
-				delete headers.resource;
-				delete headers.parameters;
-				delete headers.queryParameters;
-
-				resolve({
-					header: { ...headers, statusCode: response.status },
-					body: json
-				});
-			}).catch((err) => { throw err });
+			response.text().then(text => {
+				try {
+					const json = JSON.parse(text);
+					resolve({
+						header: { ...headers, statusCode: response.status },
+						body: json
+					});
+				} catch (err) {
+					resolve({
+						header: { ...headers, statusCode: response.status },
+						body: {
+							errors: {
+								message: text
+							}
+						}
+					})
+				}
+			}).catch(reject);
 		});
+	}
+
+	function unknownError(err, request) {
+		let headers = { ...request.header };
+		delete headers.resource;
+		delete headers.parameters;
+		delete headers.queryParameters;
+
+		return {
+			header: { ...headers, statusCode: 400 },
+			body: {
+				errors: {
+					message: err.message
+				}
+			}
+		}
 	}
 
 	function makeRequest(url, request) {

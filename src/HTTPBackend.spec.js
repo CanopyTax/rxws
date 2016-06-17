@@ -303,11 +303,11 @@ describe('HTTP Backend', function() {
 				fetch: function() {
 					return new Promise(function(resolve, reject) {
 						resolve({
-							json: () => Promise.resolve({
+							text: () => Promise.resolve(JSON.stringify({
 								khalifa: {
 									name: 'Abu Bakr'
 								}
-							}),
+							})),
 							status: 200
 						});
 					});
@@ -329,5 +329,190 @@ describe('HTTP Backend', function() {
 				run();
 			});
 		});
+	});
+
+	it('should handle 500 errors', function(run) {
+		backend({
+			backendOptions: {
+				fetch: function() {
+					return new Promise(function(resolve, reject) {
+						resolve({
+							statusText: 'Some Error',
+							status: 500,
+							text: () => Promise.resolve(JSON.stringify({
+								errors: { message: 'Some Error' }
+							})),
+						});
+					});
+				}
+			},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "get.khalifa",
+					"correlationId": "1",
+					"parameters": {"khalifa": 1},
+				},
+			}));
+
+			api.onMessage(function(resp) {
+				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":500},"body":{"errors":{"message":"Some Error"}}}');
+				run();
+			});
+		}, fail);
+	});
+
+	it('should handle 400 errors', function(run) {
+		backend({
+			backendOptions: {
+				fetch: function() {
+					return new Promise(function(resolve, reject) {
+						resolve({
+							statusText: 'Some Error',
+							status: 400,
+							text: () => Promise.resolve(JSON.stringify({
+								errors: { message: 'Some Error' }
+							})),
+						});
+					});
+				}
+			},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "get.khalifa",
+					"correlationId": "1",
+					"parameters": {"khalifa": 1},
+				},
+			}));
+
+			api.onMessage(function(resp) {
+				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":400},"body":{"errors":{"message":"Some Error"}}}');
+				run();
+			});
+		}, fail);
+	});
+
+	it('should handle malformed json 500s', function(run) {
+		backend({
+			backendOptions: {
+				fetch: function() {
+					return new Promise(function(resolve, reject) {
+						resolve({
+							statusText: 'Some Error',
+							status: 500,
+							json: () => {return new Promise((resolve, reject) => {throw new Error()})},
+							text: () => Promise.resolve('some error text'),
+						});
+					});
+				}
+			},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "get.khalifa",
+					"correlationId": "1",
+					"parameters": {"khalifa": 1},
+				},
+			}));
+
+			api.onMessage(function(resp) {
+				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":500},"body":{"errors":{"message":"some error text"}}}');
+				run();
+			});
+		}, fail);
+	});
+
+	it('should handle malformed json 200s', function(run) {
+		backend({
+			backendOptions: {
+				fetch: function() {
+					return new Promise(function(resolve, reject) {
+						resolve({
+							statusText: 'OK',
+							status: 200,
+							json: () => {return new Promise((resolve, reject) => {throw new Error('json error')})},
+							text: () => Promise.resolve('some error text'),
+						});
+					});
+				}
+			},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "get.khalifa",
+					"correlationId": "1",
+					"parameters": {"khalifa": 1},
+				},
+			}));
+
+			api.onMessage(function(resp) {
+				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":200},"body":{"errors":{"message":"some error text"}}}');
+				run();
+			});
+		}, fail);
+	});
+
+	it('should catch unknown errors as 400', function(run) {
+		backend({
+			backendOptions: {
+				fetch: function() {
+					return new Promise(function(resolve, reject) {
+						resolve({
+							statusText: 'OK',
+							status: 200,
+							json: () => {return new Promise((resolve, reject) => {throw new Error('json error')})},
+							text: () => {return new Promise((resolve, reject) => {throw new Error('other error')})},
+						});
+					});
+				}
+			},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "get.khalifa",
+					"correlationId": "1",
+					"parameters": {"khalifa": 1},
+				},
+			}));
+
+			api.onMessage(function(resp) {
+				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":400},"body":{"errors":{"message":"other error"}}}');
+				run();
+			});
+		}, fail);
+	});
+
+	it('should catch root unknown errors as 400', function(run) {
+		backend({
+			backendOptions: {
+				fetch: () => Promise.reject(new Error('ahhh')),
+			},
+			url: 'https://api-canopytax.com'
+		}).subscribe((api) => {
+
+			api.write(JSON.stringify({
+				"header": {
+					"resource": "get.khalifa",
+					"correlationId": "1",
+					"parameters": {"khalifa": 1},
+				},
+			}));
+
+			api.onMessage(function(resp) {
+				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":400},"body":{"errors":{"message":"ahhh"}}}');
+				run();
+			});
+		}, fail);
 	});
 });
