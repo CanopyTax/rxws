@@ -14,9 +14,9 @@ export default function(options) {
 				const parsedRequest = JSON.parse(request);
 
 				makeRequest(url, parsedRequest)
-					.then((resp) => parseResponse(parsedRequest, resp))
-					.then((resp) => messageCallback(JSON.stringify(resp)))
-					.catch((err) => { observer.onError(new Error(err)) });
+					.then(resp => parseResponse(parsedRequest, resp))
+					.then(resp => messageCallback(JSON.stringify(resp)))
+					.catch(err => messageCallback(JSON.stringify(unknownError(err, parsedRequest))));
 			},
 
 			onMessage(callback) {
@@ -55,6 +55,22 @@ export default function(options) {
 					.catch(reject);
 			});
 		});
+	}
+
+	function unknownError(err, request) {
+		let headers = { ...request.header };
+		delete headers.resource;
+		delete headers.parameters;
+		delete headers.queryParameters;
+
+		return {
+			header: { ...headers, statusCode: 400 },
+			body: {
+				errors: {
+					message: err.message
+				}
+			}
+		}
 	}
 
 	function makeRequest(url, request) {
