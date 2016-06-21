@@ -120,8 +120,6 @@ function handleMessage(rawMessage, response) {
 		const req = observerObj.request;
 		response.body.__header = response.header;
 
-		clearTimeout(observerObj.timeout);
-
 		if (response.header.statusCode !== 200) {
 			observer.onError({
 				err: response.body,
@@ -178,26 +176,16 @@ function retryOutstandingRequests() {
 
 		if (reqObj.tries === 1) return; // We only want to retry once
 
-		clearTimeout(reqObj.timeout);
-		prepareRequest(reqObj.observer, reqObj.request, reqObj.timing, reqObj.tries + 1);
+		prepareRequest(reqObj.observer, reqObj.request, reqObj.tries + 1);
 	});
 }
 
-function prepareRequest(observer, request, timeout, tries = 0) {
+function prepareRequest(observer, request, tries = 0) {
 
 	log(5, "Core preparing request");
 
 	requestMap[request.header.correlationId] = {
 		observer, request, tries,
-		timing: timeout,
-		timeout: setTimeout(() => {
-			log(1, "Core never received server response within timeout");
-
-			observer.onError({
-				err: 'Never received server response within timeout ' + timeout,
-				req: request,
-			});
-		}, timeout)
 	};
 
 	if (isConnected || mockRequests) {
@@ -336,21 +324,6 @@ export function reset() {
 	defaultHeaders = {};
 	connectionTries = 0;
 	clearTimeout(connectionTimeout);
-
-	Object.keys(requestMap).forEach((key) => {
-		clearTimeout(requestMap[key].timeout);
-	});
-
-// let backend = null;
-// let backendSet = false;
-// let isConnected = false;
-// let mockRequests = false;
-// let requestQueue = [];
-// let requestMap = {};
-// let notificationMap = {};
-// let defaultHeaders = {};
-// let connectionTries = 0;
-// let connectionTimeout;
 }
 
 export default function makeRequest(config) {
@@ -358,8 +331,7 @@ export default function makeRequest(config) {
 
 	return Observable.create((observer) => {
 		let request = generateRequestObject(defaultHeaders)(config);
-		let timeout = config.timeout || 10000;
 
-		prepareRequest(observer, request, timeout);
+		prepareRequest(observer, request);
 	})
 }
