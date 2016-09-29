@@ -291,7 +291,7 @@ describe('HTTP Backend', function() {
 			const requestOptions = fetchSpy.calls.argsFor(0)[1];
 
 			expect(requestOptions.method).toBe('GET');
-			expect(requestOptions.body).toBe(null);
+			expect(requestOptions.body).toBe(undefined);
 
 			run();
 		});

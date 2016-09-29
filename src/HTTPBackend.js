@@ -78,7 +78,7 @@ export default function(options) {
 		const query = request.header.queryParameters || {};
 
 		let list = resource.split('.');
-		const method = list.shift();
+		const method = list.shift().toUpperCase();
 		const path = list.reduce(toPath.bind(null, params), '');
 
 
@@ -91,11 +91,16 @@ export default function(options) {
 
 		const body = request.body || '';
 
-		return fetch(`${url}${path}${getQueryString(query)}`, {
-			method: method.toUpperCase(),
+		let requestOptions = {
+			method,
 			headers,
-			body: (method === 'get' || method === 'head') ? null : JSON.stringify(body)
-		})
+		};
+
+		if (method !== 'GET' && method !== 'HEAD') {
+			requestOptions.body = JSON.stringify(body);
+		}
+
+		return fetch(`${url}${path}${getQueryString(query)}`, requestOptions)
 
 		function toPath(params, path, res) {
 			if (params[res] === undefined || params[res] === null) {
