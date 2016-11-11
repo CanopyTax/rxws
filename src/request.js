@@ -288,6 +288,17 @@ export function requestUse() {
 	});
 }
 
+export function mockReturn(key, value) {
+	startMockingRequests();
+	requestUse().subscribe(({req, reply}) => {
+		reply({
+			header: {...req.headers, statusCode: 200},
+			body: {[key]: value}
+		});
+		reset();
+	});
+}
+
 /**
  * If mocking requests, don't require a backend
  */
