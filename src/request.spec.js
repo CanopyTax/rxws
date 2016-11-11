@@ -281,6 +281,19 @@ describe('request', () => {
 			.subscribe(value => {
 				expect(value).toEqual(returnValue);
 			});
+
+			const returnValue2 = [{'user2': 'hi'}];
+			rxws.mockReturn('address', returnValue2);
+
+			rxws({
+				method: 'get',
+				resource: 'email-accounts.address',
+				parameters: {'email-accounts': 1},
+			})
+			.pluck('address')
+			.subscribe(value => {
+				expect(value).toEqual(returnValue2);
+			});
 		});
 	});
 
