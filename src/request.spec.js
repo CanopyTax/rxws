@@ -267,6 +267,34 @@ describe('request', () => {
 				}
 			}));
 		})
+
+		it('should make mocking a single return value easy for a given end point', () => {
+			const returnValue = [{'user1': 'hi'}];
+			rxws.mockReturn('contacts', returnValue);
+
+			rxws({
+				method: 'get',
+				resource: 'email-accounts.contacts',
+				parameters: {'email-accounts': 1},
+			})
+			.pluck('contacts')
+			.subscribe(value => {
+				expect(value).toEqual(returnValue);
+			});
+
+			const returnValue2 = [{'user2': 'hi'}];
+			rxws.mockReturn('address', returnValue2);
+
+			rxws({
+				method: 'get',
+				resource: 'email-accounts.address',
+				parameters: {'email-accounts': 1},
+			})
+			.pluck('address')
+			.subscribe(value => {
+				expect(value).toEqual(returnValue2);
+			});
+		});
 	});
 
 	describe('server push notifications', () => {

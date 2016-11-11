@@ -11,6 +11,7 @@ import makeRequest, {
 	onNotification,
 	use,
 	requestUse,
+	mockReturn,
 	startMockingRequests,
 	stopMockingRequests,
 	reset
@@ -27,6 +28,7 @@ makeRequest.setBackend = setBackend;
 makeRequest.onNotification = onNotification;
 makeRequest.use = use;
 makeRequest.requestUse = requestUse;
+makeRequest.mockReturn = mockReturn;
 
 makeRequest.startMockingRequests = startMockingRequests;
 makeRequest.stopMockingRequests = stopMockingRequests;
