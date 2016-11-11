@@ -289,12 +289,17 @@ export function requestUse() {
 }
 
 export function mockReturn(key, value) {
+	const argLength = arguments.length;
 	startMockingRequests();
 	requestUse().subscribe(({req, reply}) => {
-		reply({
-			header: {...req.headers, statusCode: 200},
-			body: {[key]: value}
-		});
+		const replyObj = {header: {...req.headers, statusCode: 200}};
+
+		if (argLength === 1)
+			replyObj.body = key;
+		else
+			replyObj.body = {[key]: value};
+
+		reply(replyObj);
 		reset();
 	});
 }

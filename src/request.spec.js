@@ -1,4 +1,4 @@
-import makeRequest, { setBackend, reset, startMockingRequests, stopMockingRequests } from './request';
+import makeRequest, { setBackend, reset, startMockingRequests, stopMockingRequests, mockReturn } from './request';
 import remove from './remove';
 import rxws from './rxws';
 
@@ -268,9 +268,9 @@ describe('request', () => {
 			}));
 		})
 
-		it('should make mocking a single return value easy for a given end point', () => {
+		it('should make mocking a single return value easy for a given end point using key and value for body', () => {
 			const returnValue = [{'user1': 'hi'}];
-			rxws.mockReturn('contacts', returnValue);
+			mockReturn('contacts', returnValue);
 
 			rxws({
 				method: 'get',
@@ -283,7 +283,7 @@ describe('request', () => {
 			});
 
 			const returnValue2 = [{'user2': 'hi'}];
-			rxws.mockReturn('address', returnValue2);
+			mockReturn('address', returnValue2);
 
 			rxws({
 				method: 'get',
@@ -293,6 +293,21 @@ describe('request', () => {
 			.pluck('address')
 			.subscribe(value => {
 				expect(value).toEqual(returnValue2);
+			});
+		});
+
+		it('should make mocking a single return value easy for a given end point passing entire body', () => {
+			const returnValue = [{'user1': 'hi'}];
+			mockReturn({'contacts': returnValue});
+
+			rxws({
+				method: 'get',
+				resource: 'email-accounts.contacts',
+				parameters: {'email-accounts': 1},
+			})
+			.pluck('contacts')
+			.subscribe(value => {
+				expect(value).toEqual(returnValue);
 			});
 		});
 	});

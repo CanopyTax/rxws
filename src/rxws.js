@@ -47,6 +47,7 @@ export { onNotification };
 export { use };
 export { requestUse };
 
+export { mockReturn }
 export { startMockingRequests };
 export { stopMockingRequests };
 export { reset };
