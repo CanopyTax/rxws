@@ -122,14 +122,11 @@ function handleMessage(rawMessage, response) {
 
 		if (response instanceof Error) {
 			observer.onError(response);
-		}
-
-		if (response.header.statusCode !== 200) {
+		} else if (response.header.statusCode !== 200) {
 			observer.onError({
 				err: response.body,
 				req,
 			});
-			observer.onCompleted(response.body);
 		} else {
 			observer.onNext(response.body);
 			observer.onCompleted(response.body);
