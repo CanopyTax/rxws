@@ -16,7 +16,7 @@ export default function(options) {
 				makeRequest(url, parsedRequest)
 					.then(resp => parseResponse(parsedRequest, resp))
 					.then(resp => setTimeout(() => messageCallback(JSON.stringify(resp))))
-					.catch(err => messageCallback(JSON.stringify(unknownError(err, parsedRequest))));
+					.catch(err => messageCallback(unknownError(err, parsedRequest)));
 			},
 
 			onMessage(callback) {
@@ -62,14 +62,16 @@ export default function(options) {
 		delete headers.parameters;
 		delete headers.queryParameters;
 
-		return {
-			header: { ...headers, statusCode: 400 },
-			body: {
-				errors: {
-					message: err.message
-				}
+		/* Status code 412 means "precondition failed", which is sort of what happened
+		 * when the fetch api itself throws an Error.
+		 */
+		err.header = {...headers, statusCode: 412};
+		err.body = {
+			errors: {
+				message: "Unable to perform http request -- fetch threw a client side error"
 			}
 		}
+		return err;
 	}
 
 	function makeRequest(url, request) {
