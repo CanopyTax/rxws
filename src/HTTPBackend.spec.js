@@ -461,7 +461,7 @@ describe('HTTP Backend', function() {
 		}, fail);
 	});
 
-	it('should catch unknown errors as 400', function(run) {
+	it('should catch unknown errors as a 412', function(run) {
 		backend({
 			backendOptions: {
 				fetch: function() {
@@ -487,13 +487,17 @@ describe('HTTP Backend', function() {
 			}));
 
 			api.onMessage(function(resp) {
-				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":400},"body":{"errors":{"message":"other error"}}}');
+				expect(resp instanceof Error).toBe(true);
+				expect(resp.message).toBe("other error");
+				expect(resp.header.correlationId).toBe("1");
+				expect(resp.header.statusCode).toBe(412);
+				expect(resp.body.errors.message).toBe("Unable to perform http request -- fetch threw a client side error");
 				run();
 			});
 		}, fail);
 	});
 
-	it('should catch root unknown errors as 400', function(run) {
+	it('should catch root unknown errors as 412', function(run) {
 		backend({
 			backendOptions: {
 				fetch: () => Promise.reject(new Error('ahhh')),
@@ -510,7 +514,11 @@ describe('HTTP Backend', function() {
 			}));
 
 			api.onMessage(function(resp) {
-				expect(resp).toBe('{"header":{"correlationId":"1","statusCode":400},"body":{"errors":{"message":"ahhh"}}}');
+				expect(resp instanceof Error).toBe(true);
+				expect(resp.message).toBe("ahhh");
+				expect(resp.header.correlationId).toBe("1");
+				expect(resp.header.statusCode).toBe(412);
+				expect(resp.body.errors.message).toBe("Unable to perform http request -- fetch threw a client side error");
 				run();
 			});
 		}, fail);

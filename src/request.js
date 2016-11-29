@@ -63,7 +63,7 @@ function replyImmediately(request, response) {
 function handleMessageWrapper(message, request) {
 	log(5, "Core received message");
 
-	let response = JSON.parse(message);
+	let response = typeof message === 'string' ? JSON.parse(message) : message;
 	if (!request) {
 		request = response && response.header && requestMap[response.header.correlationId] ? requestMap[response.header.correlationId].request : null;
 	}
@@ -119,6 +119,10 @@ function handleMessage(rawMessage, response) {
 		let observer = observerObj.observer;
 		const req = observerObj.request;
 		response.body.__header = response.header;
+
+		if (response instanceof Error) {
+			observer.onError(response);
+		}
 
 		if (response.header.statusCode !== 200) {
 			observer.onError({

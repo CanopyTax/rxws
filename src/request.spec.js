@@ -268,6 +268,42 @@ describe('request', () => {
 			}));
 		})
 
+		it('should pass Error objects through, as long as there are header and body properties on the Error', () => {
+			let backend = makeMockBackend();
+			setBackend({backend: backend, url: 'someUrl'});
+
+			rxws({
+				method: 'get',
+				resource: 'users'
+			}).subscribe(
+				response => {
+					expect('This should not be called').toBe('But it was');
+				},
+				err => {
+					expect(err instanceof Error).toBe(true);
+					expect(err.message).toBe("Something went wrong");
+					expect(err.header.statusCode).toBe(412);
+					expect(typeof err.header.correlationId).toBe('string');
+				}
+			);
+
+			let request = JSON.parse(backend.write.calls.argsFor(0));
+
+			const mockedMessage = new Error("Something went wrong");
+			mockedMessage.header = {
+				"correlationId": request.header.correlationId,
+				"statusCode": 412
+			};
+			mockedMessage.body = {
+				"users": [
+					{
+						name: 'Ibn Al Haytham'
+					}
+				]
+			};
+			backend.mockServerMessage(mockedMessage);
+		})
+
 		it('should make mocking a single return value easy for a given end point using key and value for body', () => {
 			const returnValue = [{'user1': 'hi'}];
 			mockReturn('contacts', returnValue);
