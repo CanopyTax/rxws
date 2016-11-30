@@ -300,8 +300,11 @@ export function mockReturn(key, value) {
 		else
 			replyObj.body = {[key]: value};
 
-		reply(replyObj);
-		reset();
+		try {
+			reply(replyObj);
+		} finally {
+			reset();
+		}
 	});
 }
 
